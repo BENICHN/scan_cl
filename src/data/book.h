@@ -7,14 +7,10 @@
 
 #include "../qtimports.h"
 
-struct BasicPageSettings
+struct PageSettings
 {
     bool flip = false;
     optional<QSize> finalSize;
-};
-
-struct OtherPageSettings
-{
     optional<int> maxBlockDist;
     optional<int> minConnectedBlockSize;
     optional<int> minBlockSize;
@@ -26,31 +22,49 @@ struct OtherPageSettings
     optional<int> maxBigCCColorMean;
     optional<QSize> blurSize;
     optional<int> maxBlurredCCArea;
+    bool operator==(const PageSettings& settings) const = default;
 };
 
 enum PageType
 {
-    BLACK,
-    COLOR,
-    GRAY
+    PT_BLACK,
+    PT_COLOR,
+    PT_GRAY
+};
+
+enum PageStep
+{
+    PS_NONE,
+    PS_CROPPING,
+    PS_MERGING,
+    PS_CLEANING,
+    PS_FINAL,
 };
 
 enum PageStatus
 {
-    IDLE,
-    WAITING,
-    COMPLETED
+    PST_IDLE,
+    PST_WORKING,
+    PST_WAITING
+};
+
+struct LastStep
+{
+    PageStep step = PS_NONE;
+    PageSettings settings;
+    int colorAreaHash = -1;
 };
 
 struct Page
 {
+    int id;
     PageType type;
-    PageStatus status;
     string source;
     int subPage;
-    BasicPageSettings basicSettings;
-    OtherPageSettings otherSettings;
-    string dest;
+    PageSettings settings;
+    LastStep lastStep;
+    PageStatus status;
+    [[nodiscard]] bool isOld() const;
 };
 
 struct Book {
@@ -58,6 +72,8 @@ struct Book {
     string sourcesDir;
     string destDir;
     vector<Page> pages;
+    [[nodiscard]] const Page* get(int id) const;
+    [[nodiscard]] int id(int index) const;
 };
 
 #endif //BOOK_H

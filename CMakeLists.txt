@@ -14,6 +14,9 @@ find_package(Qt6 COMPONENTS
         Widgets
         REQUIRED)
 
+find_package(QCoro6 COMPONENTS
+        Core)
+
 add_executable(scan
         resources.qrc
         src/main.cpp
@@ -48,9 +51,14 @@ add_executable(scan
         src/components/PreviewerWidget.cpp
         src/components/PreviewerWidget.h
         src/components/PreviewerWidget.ui
+        src/colors.h
+        src/data/book.cpp
+        src/works.cpp
+        src/works.h
 )
 target_link_libraries(scan
         Qt::Core
         Qt::Gui
         Qt::Widgets
+        QCoro::Core
 )

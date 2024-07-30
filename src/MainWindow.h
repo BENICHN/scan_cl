@@ -21,6 +21,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    int uniqueSelectedId() const;
 
 public slots:
     void pageNavSelectionChanged();

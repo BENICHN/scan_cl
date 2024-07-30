@@ -6,6 +6,7 @@
 #define APP_H
 #include <QApplication>
 #include "MainWindow.h"
+#include "works.h"
 #include "data/Database.h"
 
 class GlobalEventFilter final : public QObject
@@ -23,6 +24,7 @@ class App final : public QApplication
     Database _database;
     GlobalEventFilter _eventFilter;
     MainWindow _mainWindow;
+    Works _works;
 
 public:
     App(int& argc, char** argv);
@@ -31,6 +33,7 @@ public:
     [[nodiscard]] Database* database() { return &_database; }
     [[nodiscard]] MainWindow* mainWindow() { return &_mainWindow; }
     [[nodiscard]] GlobalEventFilter* globalEventFilter() { return &_eventFilter; }
+    [[nodiscard]] Works* works() { return &_works; }
 };
 
 

@@ -6,6 +6,7 @@
 #define TIMELINEWIDGET_H
 
 #include "../qtimports.h"
+#include "../data/book.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -16,26 +17,43 @@ namespace Ui
 
 QT_END_NAMESPACE
 
+enum TimelineStepStatus
+{
+    TSS_NONE,
+    TSS_WORKING,
+    TSS_WAITING,
+    TSS_COMPLETED,
+    TSS_OLD
+};
+
+struct TimelineStep
+{
+    PageStep id;
+    string name;
+    TimelineStepStatus status;
+};
+
 class TimelineWidget final : public QWidget
 {
     Q_OBJECT
-    vector<vector<QPoint>> _lines;
+    vector<TimelineStep> _steps;
+    int _pageId = -1;
 
 public:
     explicit TimelineWidget(QWidget* parent = nullptr);
     ~TimelineWidget() override;
 
-protected:
-    void paintEvent(QPaintEvent* event) override;
-    void updateLinesAndSize();
-    void resizeEvent(QResizeEvent* event) override;
+    void setPageId(int id);
 
 private:
+    void paintEvent(QPaintEvent* event) override;
+    void updateSteps();
+
     Ui::TimelineWidget* ui;
 
 public:
-    static constexpr int LINE_OFFSET = 8;
-    static constexpr int ARROWS_OFFSET = 12;
+    static constexpr int ARROW_RADIUS = 10;
+    static constexpr int RADIUS = 15;
 };
 
 

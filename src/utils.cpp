@@ -4,6 +4,8 @@
 
 #include "utils.h"
 
+#include <QCoro/QCoroTimer>
+
 vector<uchar> exec(const char* cmd)
 {
     vector<uchar> result;
@@ -102,6 +104,11 @@ QRegion roundedRect(const int x, const int y, const int w, const int h, const in
             x, y + h, w, r, QRegion::Rectangle);
 }
 
+QRegion roundedRectInner(int x, int y, int w, int h, int r)
+{
+    return roundedRect(x+r, y+r, w-2*r, h-2*r, r);
+}
+
 int cx(const QRect& rect)
 {
     return .5 * (rect.left() + rect.right());
@@ -138,4 +145,27 @@ void drawArrow(QPainter* painter, const QPoint& pos, const float angle, const fl
         pos + radialVector(angle+M_PI+amplitude, radius)
     };
     painter->drawPolyline(pts, 3);
+}
+
+void drawText(QPainter& painter, qreal x, qreal y, Qt::Alignment flags, const QString& text, QRectF* boundingRect)
+{
+    const qreal size = 32767.0;
+    QPointF corner(x, y - size);
+    if (flags & Qt::AlignHCenter) corner.rx() -= size/2.0;
+    else if (flags & Qt::AlignRight) corner.rx() -= size;
+    if (flags & Qt::AlignVCenter) corner.ry() += size/2.0;
+    else if (flags & Qt::AlignTop) corner.ry() += size;
+    else flags |= Qt::AlignBottom;
+    QRectF rect{corner.x(), corner.y(), size, size};
+    painter.drawText(rect, flags, text, boundingRect);
+}
+
+void drawText(QPainter& painter, const QPointF& point, Qt::Alignment flags, const QString& text, QRectF* boundingRect)
+{
+    drawText(painter, point.x(), point.y(), flags, text, boundingRect);
+}
+
+QCoro::Task<> delay(const int ms)
+{
+    return QCoro::sleepFor(std::chrono::milliseconds(ms));
 }

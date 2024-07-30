@@ -5,8 +5,9 @@
 // You may need to build the project (run Qt uic code generator) to get "ui_MainWindow.h" resolved
 
 #include "MainWindow.h"
-#include "ui_MainWindow.h"
 
+#include "app.h"
+#include "ui_MainWindow.h"
 
 MainWindow::MainWindow(QWidget* parent) :
     QWidget(parent), ui(new Ui::MainWindow)
@@ -14,6 +15,10 @@ MainWindow::MainWindow(QWidget* parent) :
     ui->setupUi(this);
     connect(ui->pageNav->list()->selectionModel(), &QItemSelectionModel::selectionChanged,
             this, &MainWindow::pageNavSelectionChanged);
+    connect(ui->pushButton, &QAbstractButton::clicked, [this]
+    {
+        App::instance()->works()->enqueue({ uniqueSelectedId(), true, false });
+    });
 }
 
 MainWindow::~MainWindow()
@@ -21,8 +26,15 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::pageNavSelectionChanged()
+int MainWindow::uniqueSelectedId() const
 {
     QModelIndexList idxs = ui->pageNav->list()->selectionModel()->selectedIndexes();
-    ui->previewer->setPageId(idxs.size() == 1 ? idxs[0].row() : -1);
+    return idxs.size() == 1 ? App::instance()->database()->book()->id(idxs[0].row()) : -1;
+}
+
+void MainWindow::pageNavSelectionChanged()
+{
+    const int newId = uniqueSelectedId();
+    ui->previewer->setPageId(newId);
+    ui->timeline->setPageId(newId);
 }

@@ -66,7 +66,7 @@ SelectionRectWidget::SelectionRectWidget(QWidget* parent) : QWidget(parent)
     updateSelectionMode();
     setFocusPolicy(Qt::FocusPolicy::ClickFocus);
     setMouseTracking(true);
-    connect(App::instance()->globalEventFilter(), &GlobalEventFilter::modifiersChangeEvent, this,
+    connect(app()->globalEventFilter(), &GlobalEventFilter::modifiersChangeEvent, this,
             &SelectionRectWidget::onModifiersChange);
 }
 

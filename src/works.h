@@ -5,8 +5,8 @@
 #ifndef WORKS_H
 #define WORKS_H
 
-#include <QCoro/QCoroFuture>
 #include "stdimports.h"
+#include "qcoroimports.h"
 
 struct Work
 {
@@ -19,9 +19,9 @@ class Works {
     queue<Work> waitingWorks;
     unordered_map<int, Work> runningWorks;
 public:
-    void enqueue(Work work);
+    void enqueue(const Work& work);
 private:
-    QCoro::Task<> launch();
+    Task<> launch();
 };
 
 

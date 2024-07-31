@@ -12,6 +12,7 @@
 #include <queue>
 #include <variant>
 #include <vector>
+#include <unordered_map>
 
 using std::cout;
 using std::make_unique;

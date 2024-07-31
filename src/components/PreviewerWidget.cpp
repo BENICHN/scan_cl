@@ -36,16 +36,17 @@ void PreviewerWidget::updateImage() const
     }
     else
     {
-        const Book* book = App::instance()->database()->book();
+        Book* book = app()->book();
         const Page* page = book->get(_pageId);
         switch (_mode)
         {
         case SRC:
-            ui->iv->setPixmap(QPixmap((book->sourcesDir + "/" + page->source).c_str()));
+            ui->iv->setPixmap(QPixmap((book->sourcesDir() + page->source).c_str()));
             break;
         case ASK:
+            break;
         case RES:
-            ui->iv->setPixmap(QPixmap());
+            ui->iv->setPixmap(QPixmap((book->generatedDir()+to_string(page->id)+".pbm").c_str()));
             break;
         }
     }

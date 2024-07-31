@@ -14,6 +14,13 @@ TimelineWidget::TimelineWidget(QWidget* parent) :
     QWidget(parent), ui(new Ui::TimelineWidget)
 {
     ui->setupUi(this);
+    connect(app(), &App::pageStatusChanged, [this](int pageId)
+    {
+        if (pageId == _pageId)
+        {
+            updateSteps();
+        }
+    });
     // ui->stepAssembl->setStyleSheet(R"(
     //     QPushButton {
     //         background-color: red;
@@ -80,20 +87,20 @@ void TimelineWidget::paintEvent(QPaintEvent* event)
         painter.setPen(Qt::NoPen);
         switch (step.status)
         {
-        case TSS_NONE:
+        case PST_READY:
             painter.setBrush(Qt::white);
             break;
-        case TSS_WORKING:
+        case PST_WORKING:
             painter.setBrush(Color::orange);
             break;
-        case TSS_WAITING:
+        case PST_WAITING:
             painter.setBrush(Color::sunFlower);
             break;
-        case TSS_COMPLETED:
+        case PST_COMPLETED:
             painter.setBrush(Color::emerald);
             break;
-        case TSS_OLD:
-            painter.setBrush(Color::nephritis);
+        case PST_ERROR:
+            painter.setBrush(Color::alizarin);
             break;
         }
         painter.drawPolygon(poly);
@@ -118,45 +125,35 @@ void TimelineWidget::updateSteps()
     }
     else
     {
-        const Page* page = App::instance()->database()->book()->get(_pageId);
-        switch (page->type)
+        const Page* page = app()->book()->get(_pageId);
+        switch (page->colorMode)
         {
         case PT_BLACK:
             _steps = {
-                {PS_CROPPING, "Recadrage", TSS_NONE},
-                {PS_CLEANING, "Nettoyage", TSS_NONE},
-                {PS_FINAL, "Finalisation", TSS_NONE}
+                {PS_CROPPING, "Recadrage", PST_READY},
+                {PS_CLEANING, "Nettoyage", PST_READY},
+                {PS_FINAL, "Finalisation", PST_READY}
             };
         case PT_COLOR:
         case PT_GRAY:
             _steps = {
-                {PS_CROPPING, "Recadrage", TSS_NONE},
-                {PS_MERGING, "Assemblage", TSS_NONE},
-                {PS_CLEANING, "Nettoyage", TSS_NONE},
-                {PS_FINAL, "Finalisation", TSS_NONE}
+                {PS_CROPPING, "Recadrage", PST_READY},
+                {PS_MERGING, "Assemblage", PST_READY},
+                {PS_CLEANING, "Nettoyage", PST_READY},
+                {PS_FINAL, "Finalisation", PST_READY}
             };
         }
-        int currentStepIndex = -1;
-        if (page->lastStep.step != PS_NONE)
+        int i = 0;
+        if (page->lastStep)
         {
             for (TimelineStep& step : _steps)
             {
-                currentStepIndex++;
-                step.status = TSS_COMPLETED;
-                if (step.id == page->lastStep.step) break;
+                i++;
+                step.status = PST_COMPLETED;
+                if (step.id == page->lastStep) break;
             }
         }
-        switch (page->status)
-        {
-        case PST_IDLE:
-            break;
-        case PST_WORKING:
-            _steps[currentStepIndex+1].status = TSS_WORKING;
-            break;
-        case PST_WAITING:
-            _steps[currentStepIndex+1].status = TSS_WAITING;
-            break;
-        }
+        _steps[i].status = page->status;
     }
     update();
 }

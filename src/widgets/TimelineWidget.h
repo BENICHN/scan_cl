@@ -17,20 +17,11 @@ namespace Ui
 
 QT_END_NAMESPACE
 
-enum TimelineStepStatus
-{
-    TSS_NONE,
-    TSS_WORKING,
-    TSS_WAITING,
-    TSS_COMPLETED,
-    TSS_OLD
-};
-
 struct TimelineStep
 {
     PageStep id;
     string name;
-    TimelineStepStatus status;
+    PageStatus status;
 };
 
 class TimelineWidget final : public QWidget

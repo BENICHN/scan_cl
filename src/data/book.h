@@ -6,10 +6,24 @@
 #define BOOK_H
 
 #include "../qtimports.h"
+#include "../jsonimports.h"
+
+enum PageColorMode
+{
+    PT_BLACK,
+    PT_COLOR,
+    PT_GRAY
+};
+
+NLOHMANN_JSON_SERIALIZE_ENUM(PageColorMode, {
+                             {PT_BLACK, "PT_BLACK"},
+                             {PT_COLOR, "PT_COLOR"},
+                             {PT_GRAY, "PT_GRAY"},
+                             })
 
 struct PageSettings
 {
-    bool flip = false;
+    optional<bool> flip;
     optional<QSize> finalSize;
     optional<int> maxBlockDist;
     optional<int> minConnectedBlockSize;
@@ -25,55 +39,76 @@ struct PageSettings
     bool operator==(const PageSettings& settings) const = default;
 };
 
-enum PageType
-{
-    PT_BLACK,
-    PT_COLOR,
-    PT_GRAY
-};
+void to_json(json& j, const PageSettings& v);
+void from_json(const json& j, PageSettings& v);
 
 enum PageStep
 {
-    PS_NONE,
     PS_CROPPING,
     PS_MERGING,
     PS_CLEANING,
     PS_FINAL,
 };
 
+NLOHMANN_JSON_SERIALIZE_ENUM(PageStep, {
+                             {PS_CROPPING, "PS_CROPPING"},
+                             {PS_MERGING, "PS_MERGING"},
+                             {PS_CLEANING, "PS_CLEANING"},
+                             {PS_FINAL, "PS_FINAL"},
+                             })
+
+PageStep stepAfter(PageStep step);
+
 enum PageStatus
 {
-    PST_IDLE,
+    PST_READY,
     PST_WORKING,
-    PST_WAITING
+    PST_COMPLETED,
+    PST_WAITING,
+    PST_ERROR,
 };
 
-struct LastStep
-{
-    PageStep step = PS_NONE;
-    PageSettings settings;
-    int colorAreaHash = -1;
-};
+NLOHMANN_JSON_SERIALIZE_ENUM(PageStatus, {
+                             {PST_READY, "PST_READY"},
+                             {PST_WORKING, "PST_WORKING"},
+                             {PST_COMPLETED, "PST_COMPLETED"},
+                             {PST_WAITING, "PST_WAITING"},
+                             {PST_ERROR, "PST_ERROR"},
+                             })
 
 struct Page
 {
-    int id;
-    PageType type;
+    int id = 0;
+    PageColorMode colorMode = PT_BLACK;
     string source;
-    int subPage;
+    int subPage = 1;
     PageSettings settings;
-    LastStep lastStep;
-    PageStatus status;
-    [[nodiscard]] bool isOld() const;
+    optional<PageStep> lastStep;
+    PageStatus status = PST_READY;
+    optional<PageStep> nextStep() const;
+    PageSettings realSettings() const;
+    json toJsonSettings() const;
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Page, id, colorMode, source, subPage, settings, lastStep, status)
 };
 
-struct Book {
+struct Book
+{
+    string root;
     string title;
-    string sourcesDir;
-    string destDir;
+    PageSettings globalSettings;
     vector<Page> pages;
-    [[nodiscard]] const Page* get(int id) const;
+    [[nodiscard]] Page* get(int id);
     [[nodiscard]] int id(int index) const;
+    string sourcesDir() const;
+    string outputDir() const;
+    string generatedDir() const;
+    string sourcesThumbnailsdDir() const;
+    string mergingChoicesDir() const;
+    bool setPageWorkingIfReady(int id);
+    void invalidatePage(int id);
+    void validatePage(int id);
+    string getPageSourceThumbnail(int id);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Book, title, pages)
 };
 
 #endif //BOOK_H

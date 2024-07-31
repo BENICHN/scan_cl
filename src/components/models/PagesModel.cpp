@@ -11,7 +11,7 @@ PagesModel::PagesModel(QObject* parent) : QAbstractListModel(parent)
 
 int PagesModel::rowCount(const QModelIndex& parent) const
 {
-    return App::instance()->database()->book()->pages.size();
+    return app()->book()->pages.size();
 }
 
 QVariant PagesModel::data(const QModelIndex& index, int role) const
@@ -21,7 +21,7 @@ QVariant PagesModel::data(const QModelIndex& index, int role) const
     case Qt::DisplayRole:
         return index.row();
     case Qt::DecorationRole:
-         return QPixmap((App::instance()->database()->book()->sourcesDir + "/" + App::instance()->database()->book()->pages[index.row()].source).c_str());
+         return QPixmap(app()->book()->getPageSourceThumbnail(app()->book()->pages[index.row()].id).c_str());
     }
     return {};
 }

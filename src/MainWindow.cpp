@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget* parent) :
             this, &MainWindow::pageNavSelectionChanged);
     connect(ui->pushButton, &QAbstractButton::clicked, [this]
     {
-        App::instance()->works()->enqueue({ uniqueSelectedId(), true, false });
+        app()->works()->enqueue({ uniqueSelectedId(), true, false });
     });
 }
 
@@ -29,7 +29,7 @@ MainWindow::~MainWindow()
 int MainWindow::uniqueSelectedId() const
 {
     QModelIndexList idxs = ui->pageNav->list()->selectionModel()->selectedIndexes();
-    return idxs.size() == 1 ? App::instance()->database()->book()->id(idxs[0].row()) : -1;
+    return idxs.size() == 1 ? app()->book()->id(idxs[0].row()) : -1;
 }
 
 void MainWindow::pageNavSelectionChanged()

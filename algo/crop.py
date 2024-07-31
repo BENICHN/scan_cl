@@ -2,6 +2,7 @@ from numba import jit, prange
 import numpy as np
 import cv2
 import sys
+import json
 
 #########################################################################################################
 
@@ -24,29 +25,29 @@ def apply_gamma(src, gamma):
     table = np.array([((i / 255) ** invGamma) * 255 for i in range(256)], dtype='b')
     return cv2.LUT(src, table).astype('uint8')
 
-def largest_blocks(bw, n, axis, min_block_size, max_block_dist, min_connected_block_size):
+def largest_blocks(bw, n, axis, minBlockSize, maxBlockDist, minConnectedBlockSize):
     """
     calcule les `n` plus gros blocs réduits selon l'axe `axis` après éventuel recollement
     # arguments
     * `n` : nombre de blocs à retourner
     * `bw` image source au format bw
     * `axis` : axe de réduction
-    * `min_block_size` : seuil de petits blocs
-    * `max_block_dist` : seuil de distance entre blocs
-    * `min_connected_block_size` : largeur minimale d'un bloc connecté
+    * `minBlockSize` : seuil de petits blocs
+    * `maxBlockDist` : seuil de distance entre blocs
+    * `minConnectedBlockSize` : largeur minimale d'un bloc connecté
     # retourne
     les `n` blocs
     """
     cols = (np.sum(bw, axis=axis)>0).astype('uint8')
     blocks = cv2.connectedComponentsWithStats(cols)[2][1:,[1,3]]
-    large_blocks = blocks[blocks[:,1] > min_block_size]
+    large_blocks = blocks[blocks[:,1] > minBlockSize]
     large_connected_blocks = []
     for b in large_blocks:
-        if len(large_connected_blocks) > 0 and large_connected_blocks[-1][1] + max_block_dist >= b[0]:
+        if len(large_connected_blocks) > 0 and large_connected_blocks[-1][1] + maxBlockDist >= b[0]:
             large_connected_blocks[-1] = (large_connected_blocks[-1][0], b[0]+b[1])
         else:
             large_connected_blocks.append((b[0],b[0]+b[1]))
-    big_connected_blocks = [ b for b in large_connected_blocks if b[1]-b[0] > min_connected_block_size ]
+    big_connected_blocks = [ b for b in large_connected_blocks if b[1]-b[0] > minConnectedBlockSize ]
     big_connected_blocks.sort(key=lambda b: b[1]-b[0], reverse=True)
     largest_blocks = big_connected_blocks[0:n] if n != 0 else big_connected_blocks
     largest_blocks.sort(key=lambda b: b[0])
@@ -99,99 +100,76 @@ def bwtobitsaligned(bw):
     return res
 
 def process_img(gray, clr, op):
-    color_mode = op['color_mode']
+    colorMode = op['colorMode']
     bw = (gray < 255).astype('uint8')
     h, w = bw.shape
     # On détermine les plages x du contenu
-    x_blocks = largest_blocks(bw, op['num_pages'], 0, op['min_block_size'], op['max_block_dist'], op['min_connected_block_size'])
-    if not len(x_blocks) == op['num_pages']: raise Exception("pas assez de pages dans l'image")
-    for x_start, x_end in x_blocks:
-        bw1 = bw[:,x_start:x_end]
-        
-        # On détermine la plage y du contenu
-        
-        y_start, y_end = largest_blocks(bw1, 1, axis=1, max_block_dist=h, min_connected_block_size=0, min_block_size=op['min_block_size'])[0]
-        bw2 = bw1[y_start:y_end]
-        
-        # On calcule le rectangle et la matrice de rotation
-        
-        nzc = cv2.findNonZero(bw2)
-        box = cv2.minAreaRect(points=nzc)
-        box_vertices = cv2.boxPoints(box=box)
-        angle = -box[2]
-        if (angle < -45):
-            angle = 90 + angle
-        if angle == 0: angle = 0.02 # pour que les images non tournées paraissent comme les tournées
-        M = cv2.getRotationMatrix2D(center=(w/2, h/2), angle=-angle, scale=1.0)
-        
-        # Rotation de l'image selon le rectangle
-        
-        rotated = gray.copy()
-        cv2.warpAffine(src=gray, M=M, dsize=(w, h), dst=rotated, flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
-        if color_mode != 'no':
-            rotated_clr = clr.copy()
-            cv2.warpAffine(src=clr, M=M, dsize=(w, h), dst=rotated_clr, flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
-        
-        # Clippage de l'image selon le rectangle
-
-        box_vertices_sorted = np.array(sorted(box_vertices, key=lambda c: l2(c)))
-        box_vertices_matrix = np.vstack((box_vertices_sorted.transpose(), np.ones((1,4))))
-        box_vertices_rotated = ((M @ box_vertices_matrix).transpose()).astype('i')
-        offset = np.array([x_start, y_start])
-        tl = box_vertices_rotated[0]+offset
-        br = box_vertices_rotated[3]+offset
-
-        crop_overflow=op['crop_overflow']
-        cropped = rotated[pos(tl[1]-crop_overflow):br[1]+1+crop_overflow, pos(tl[0]-crop_overflow):br[0]+1+crop_overflow]
-        if color_mode != 'no':
-            cropped_clr = rotated_clr[pos(tl[1]-crop_overflow):br[1]+1+crop_overflow, pos(tl[0]-crop_overflow):br[0]+1+crop_overflow]
-        
-        # Flippage
-
-        if op['flip']:
-            flipped = np.flip(np.flip(cropped, axis=0), axis=1)
-            if color_mode != 'no': flipped_clr = np.flip(np.flip(cropped_clr, axis=0), axis=1)
-        else:
-            flipped = cropped
-            if color_mode != 'no': flipped_clr = cropped_clr
-            
-        bw3 = (flipped < op['white_threshold']).astype('uint8')
-
-        # Ajustement des couleurs
-
-        if color_mode != 'no':
-            flipped_gray = flipped_clr if color_mode == 'gray' else cv2.cvtColor(flipped_clr, cv2.COLOR_BGR2GRAY)
-            gmask = (flipped_gray < op['white_color_threshold']).astype('uint8')
-            whitened_clr = (255 - (255 - flipped_clr) * (gmask if color_mode == 'gray' else gmask[:,:,np.newaxis])).astype('uint8')
-            adjusted_clr = apply_gamma(whitened_clr, op['gamma'])
+    x_blocks = largest_blocks(bw, op['subPage'], 0, op['minBlockSize'], op['maxBlockDist'], op['minConnectedBlockSize'])
+    if not len(x_blocks) == op['subPage']: raise Exception("pas assez de pages dans l'image")
+    x_start, x_end = x_blocks[-1]
+    bw1 = bw[:,x_start:x_end]
     
-        # Effacement des petits blocs
-
-        n, lab, stats, cent = cv2.connectedComponentsWithStats(bw3)
-        small_ccs_filter = stats[:,4] < op['small_image_blocks_area']
-        small_ccs = np.nonzero(small_ccs_filter)[0]
-        small_ccs_mask = (~np.isin(lab, small_ccs)).astype('uint8')
-        bw4 = bw3 * small_ccs_mask
-        
-        # Effacement des gros blocs
+    # On détermine la plage y du contenu
     
-        big_ccs = np.nonzero(~small_ccs_filter)[0][1:]
-        big_ccs_means = means(255-flipped, lab, n, stats, big_ccs)
-        big_light_ccs = big_ccs[big_ccs_means < op['max_big_cc_color_mean']].astype('i')
-        big_light_ccs_mask = (np.isin(lab, big_light_ccs)).astype('uint8')
+    y_start, y_end = largest_blocks(bw1, 1, axis=1, maxBlockDist=h, minConnectedBlockSize=0, minBlockSize=op['minBlockSize'])[0]
+    bw2 = bw1[y_start:y_end]
+    
+    # On calcule le rectangle et la matrice de rotation
+    
+    nzc = cv2.findNonZero(bw2)
+    box = cv2.minAreaRect(points=nzc)
+    box_vertices = cv2.boxPoints(box=box)
+    angle = -box[2]
+    if (angle < -45):
+        angle = 90 + angle
+    if angle == 0: angle = 0.02 # pour que les images non tournées paraissent comme les tournées
+    M = cv2.getRotationMatrix2D(center=(w/2, h/2), angle=-angle, scale=1.0)
+    
+    # Rotation de l'image selon le rectangle
+    
+    rotated = gray.copy()
+    cv2.warpAffine(src=gray, M=M, dsize=(w, h), dst=rotated, flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+    if colorMode != 'PT_BLACK':
+        rotated_clr = clr.copy()
+        cv2.warpAffine(src=clr, M=M, dsize=(w, h), dst=rotated_clr, flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+    
+    # Clippage de l'image selon le rectangle
+    box_vertices_sorted = np.array(sorted(box_vertices, key=lambda c: l2(c)))
+    box_vertices_matrix = np.vstack((box_vertices_sorted.transpose(), np.ones((1,4))))
+    box_vertices_rotated = ((M @ box_vertices_matrix).transpose()).astype('i')
+    offset = np.array([x_start, y_start])
+    tl = box_vertices_rotated[0]+offset
+    br = box_vertices_rotated[3]+offset
+    cropOverflow=op['cropOverflow']
+    cropped = rotated[pos(tl[1]-cropOverflow):br[1]+1+cropOverflow, pos(tl[0]-cropOverflow):br[0]+1+cropOverflow]
+    if colorMode != 'PT_BLACK':
+        cropped_clr = rotated_clr[pos(tl[1]-cropOverflow):br[1]+1+cropOverflow, pos(tl[0]-cropOverflow):br[0]+1+cropOverflow]
+    
+    # Flippage
+    if op['flip']:
+        flipped = np.flip(np.flip(cropped, axis=0), axis=1)
+        if colorMode != 'PT_BLACK': flipped_clr = np.flip(np.flip(cropped_clr, axis=0), axis=1)
+    else:
+        flipped = cropped
+        if colorMode != 'PT_BLACK': flipped_clr = cropped_clr
+        
+    bw3 = (flipped < op['whiteThreshold']).astype('uint8')
+    # Ajustement des couleurs
+    if colorMode != 'PT_BLACK':
+        flipped_gray = flipped_clr if colorMode == 'PT_GRAY' else cv2.cvtColor(flipped_clr, cv2.COLOR_BGR2GRAY)
+        gmask = (flipped_gray < op['whiteColorThreshold']).astype('uint8')
+        whitened_clr = (255 - (255 - flipped_clr) * (gmask if colorMode == 'PT_GRAY' else gmask[:,:,np.newaxis])).astype('uint8')
+        adjusted_clr = apply_gamma(whitened_clr, op['colorGamma'])
 
-        bw4_blurred = (cv2.blur(bw4 * 255, ksize=op['blur_size']) > 0).astype('uint8')
-        n_blurred, lab_blurred, stats_blurred, cent_blurred = cv2.connectedComponentsWithStats(bw4_blurred)
-        big_ccs_blurred = np.nonzero(stats_blurred[:,4] < op['max_blurred_cc_area'])
-        big_ccs_blurred_mask = (np.isin(lab_blurred, big_ccs_blurred)).astype('uint8')
-        big_ccs_mask = big_ccs_blurred_mask * bw4
-
-        big_ccs_total_mask = ((big_light_ccs_mask + big_ccs_mask) > 0).astype('uint8')
-        bigs = np.any(big_ccs_total_mask)
-        if bigs:
-            n_bigs, lab_bigs, stats_bigs, cent_bigs = cv2.connectedComponentsWithStats(big_ccs_total_mask)
-            return bw4, adjusted_clr, (n_bigs, lab_bigs, stats_bigs, cent_bigs)
-        return bw4, adjusted_clr, None            
+    # Effacement des petits blocs
+    n, lab, stats, cent = cv2.connectedComponentsWithStats(bw3)
+    small_ccs_filter = stats[:,4] < op['smallImageBlocksArea']
+    small_ccs = np.nonzero(small_ccs_filter)[0]
+    small_ccs_mask = (~np.isin(lab, small_ccs)).astype('uint8')
+    bw4 = bw3 * small_ccs_mask
+    
+    # Effacement des gros blocs
+    return bw4 if colorMode == 'PT_BLACK' else bw4, adjusted_clr
         
 ##             newbmask = big_ccs_total_mask.copy()
 ##             print('/!\\ big blocks detected')
@@ -246,33 +224,52 @@ def process_img(gray, clr, op):
     
 #########################################################################################################
 
-source = sys.argv[1]
-destDir = sys.argv[2]
-destName = sys.argv[3]
+f = open('log.log', 'w')
 
-# f = open('log.log', 'w')
-# f.write(source)
-# f.write(destDir)
-# f.write(destName)
+try:
+    source = sys.argv[1]
+    destDir = sys.argv[2]
+    destName = sys.argv[3]
+    settings = sys.argv[4]
+    
+    f.write(source)
+    f.write('\n')
+    f.write(destDir)
+    f.write('\n')
+    f.write(destName)
+    f.write('\n')
+    f.write('\n')
+    f.write(settings)
 
-gray = cv2.imread(source, cv2.IMREAD_GRAYSCALE)
-bwf, clrf, bigs = process_img(gray, gray, {
-    'num_pages': 1,
-    'max_block_dist': 60,
-    'min_connected_block_size': 250,
-    'min_block_size': 10,
-    'crop_overflow': 50,
-    'flip': True,
-    'white_threshold': 234, # seuil de blanc (<255)
-    'small_image_blocks_area': 20, # taille des petits blocs d'image
-    'color_mode': 'gray', # taille des petits blocs d'image
-    'white_color_threshold': 240, # seuil de blanc pour les couleurs (<=255)
-    'gamma': 0.5,
-    'max_big_cc_color_mean': 15000,
-    'blur_size': (110,12),
-    'max_blurred_cc_area': 4000
-})
-cv2.imwrite(f'{destDir}/{destName}.pbm', bwf)
+    stgs = json.loads(settings)
+
+    f.write('\n')
+    f.write('\n')
+    f.write(str(stgs))
+    f.write('\n')
+    f.write('\n')
+
+    gray = cv2.imread(source, cv2.IMREAD_GRAYSCALE)
+    ## res = process_img(gray, gray, {
+    ##     'subPage': 1,
+    ##     'maxBlockDist': 60,
+    ##     'minConnectedBlockSize': 250,
+    ##     'minBlockSize': 10,
+    ##     'cropOverflow': 50,
+    ##     'flip': True,
+    ##     'whiteThreshold': 234, # seuil de blanc (<255)
+    ##     'smallImageBlocksArea': 20, # taille des petits blocs d'image
+    ##     'colorMode': 'PT_GRAY', # taille des petits blocs d'image
+    ##     'whiteColorThreshold': 240, # seuil de blanc pour les couleurs (<=255)
+    ##     'colorGamma': 0.5,
+    ##     'maxBigCCColorMean': 15000,
+    ##     'blurSize': (110,12),
+    ##     'maxBlurredCCArea': 4000
+    ## })
+    res = process_img(gray, gray, stgs)
+    cv2.imwrite(f'{destDir}/{destName}.pbm', res[0])
+except Exception as e:
+    f.write(str(e))
 # cv2.imwrite("test_clr.pgm", clrf)
 
 # h, w = bwf.shape

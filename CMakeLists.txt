@@ -15,7 +15,11 @@ find_package(Qt6 COMPONENTS
         REQUIRED)
 
 find_package(QCoro6 COMPONENTS
-        Core)
+        Core
+        REQUIRED)
+
+find_package(nlohmann_json
+        REQUIRED)
 
 add_executable(scan
         resources.qrc
@@ -45,8 +49,6 @@ add_executable(scan
         src/MainWindow.h
         src/MainWindow.ui
         src/app.h
-        src/data/Database.cpp
-        src/data/Database.h
         src/app.cpp
         src/components/PreviewerWidget.cpp
         src/components/PreviewerWidget.h
@@ -55,10 +57,14 @@ add_executable(scan
         src/data/book.cpp
         src/works.cpp
         src/works.h
+        src/qcoroimports.h
+        src/jsonimports.h
+        src/jsonimports.cpp
 )
 target_link_libraries(scan
         Qt::Core
         Qt::Gui
         Qt::Widgets
         QCoro::Core
+        nlohmann_json::nlohmann_json
 )

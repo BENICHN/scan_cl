@@ -5,89 +5,65 @@
 #include "works.h"
 
 #include "app.h"
-#include "utils.h"
-#include "jsonimports.h"
+#include "imports/jsonimports.h"
 
-void Works::enqueue(const Work& work)
+bool Works::enqueue(const Work& work)
 {
-    waitingWorks.push(work);
+    if (isEnqueued(work.pageId)) return false;
+    _waitingWorks.emplace_back(work);
     launch();
+    return true;
 }
 
-Task<bool> nextPageWork(const int pageId)
+bool Works::isEnqueued(int pageId)
 {
-    Book* book = app()->book();
-    const Page* page = book->get(pageId);
-    switch (page->nextStep().value())
+    return _runningWorks.contains(pageId) || str::any_of(_waitingWorks, [=](const Work& work)
     {
-    case PS_CROPPING:
-        {
-            QProcess p;
-            p.start("python3", {
-                        "/home/benichn/prog/cpp/scan/algo/crop.py",
-                        (book->sourcesDir() + page->source).c_str(),
-                        book->generatedDir().c_str(),
-                        to_string(pageId).c_str(),
-                        page->toJsonSettings().dump().c_str()
-                    });
-            co_await qCoro(p).waitForFinished(60000);
-            co_return p.exitCode() == 0;
-        }
-    case PS_MERGING:
-        {
-
-        }
-        break;
-    case PS_CLEANING:
-        {
-
-        }
-        break;
-    case PS_FINAL:
-        {
-
-        }
-        break;
-    }
+        return work.pageId == pageId;
+    });
 }
 
 Task<> runWork(const Work& work)
 {
+    Book& book = app().book();
     while (true)
     {
-        Book* book = app()->book();
-        if (!book->setPageWorkingIfReady(work.pageId)) co_return;
-        bool result = co_await nextPageWork(work.pageId);
-        if (result)
+        const auto res = co_await book.runPage(work.pageId);
+        if (!work.stopAtAsk && res == SST_WAITING)
         {
-            book->validatePage(work.pageId);
+            while (true)
+            {
+                const auto [ id, accepted ] = co_await qCoro(&book, &Book::choiceAccepted);
+                if (id == work.pageId && accepted)
+                {
+                    break;
+                }
+            }
         }
-        else
-        {
-            book->invalidatePage(work.pageId);
-        }
+        else if (!work.allSteps || book.page(work.pageId).status() == PST_COMPLETED) break;
     }
 }
 
 Task<> Works::launch()
 {
-    if (!runningWorks.empty()) co_return;
+    if (!_runningWorks.empty()) co_return;
     while (true)
     {
-        if (waitingWorks.empty() && runningWorks.empty()) co_return;
-        if (!waitingWorks.empty() && runningWorks.size() < 5)
+        if (_waitingWorks.empty() && _runningWorks.empty()) co_return;
+        if (!_waitingWorks.empty() && _runningWorks.size() < 5)
         {
-            const Work wk = waitingWorks.front();
-            waitingWorks.pop();
-            runningWorks[wk.pageId] = wk;
-            runWork(wk).then([this, wk]
+            const Work wk = _waitingWorks.front();
+            _waitingWorks.pop_front();
+            _runningWorks[wk.pageId] = wk;
+            runWork(wk).then([=]
             {
-                runningWorks.erase(wk.pageId);
+                _runningWorks.erase(wk.pageId);
+                emit workFinished();
             });
         }
         else
         {
-            co_await delay(100);
+            co_await qCoro(this, &Works::workFinished);
         }
     }
 }

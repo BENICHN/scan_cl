@@ -5,12 +5,13 @@
 #ifndef MOUSEHANDLER_H
 #define MOUSEHANDLER_H
 
-#include "../qtimports.h"
+#include "../imports/stdimports.h"
+#include "../imports/qtimports.h"
 
 class MouseAction;
 
 class MouseHandler {
-    unique_ptr<MouseAction> _mouseAction = nullptr;
+    unique_ptr<MouseAction> _mouseAction;
     QEvent * _e = nullptr;
 public:
     virtual ~MouseHandler() = default;

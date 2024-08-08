@@ -25,7 +25,34 @@ bool GlobalEventFilter::eventFilter(QObject* obj, QEvent* e)
     return QObject::eventFilter(obj, e);
 }
 
-App::App(int& argc, char** argv): QApplication(argc, argv)
+App::App(int& argc, char** argv): QApplication(argc, argv), _book({
+        "/home/benichn/prog/cpp/scan/testBook",
+        "Test",
+        {
+                {
+                    "Recadrage",
+                    {
+                        {"flip", true},
+                        {"maxBlockDist", 60},
+                        {"minConnectedBlockSize", 250},
+                        {"minBlockSize", 10},
+                        {"cropOverflow", 50},
+                        {"whiteThreshold", 234},
+                        {"smallImageBlocksArea", 20},
+                        {"whiteColorThreshold", 240},
+                        {"colorGamma", 0.5},
+                        {"maxBigCCColorMean", 15000},
+                        {"blurSize", QSize(110, 12)},
+                        {"maxBlurredCCArea", 4000}
+                    }
+                },
+                {
+                    "Finalisation", {
+                        {"finalSize", QSize(3000, 5000)}
+                    }
+                },
+            }
+    })
 {
     installEventFilter(&_eventFilter);
 }

@@ -5,7 +5,7 @@
 #ifndef IMAGEVIEWERWIDGET_H
 #define IMAGEVIEWERWIDGET_H
 
-#include "../qtimports.h"
+#include "../imports/qtimports.h"
 #include "../mouse/MouseAction.h"
 #include "../mouse/MouseHandler.h"
 #include <QLabel>
@@ -41,6 +41,11 @@ class ImageViewerWidget final : public QWidget
     QPixmap _pixmap;
     QLabel* _imageLabel;
     SelectionRectWidget* _selectionRect;
+
+public:
+    [[nodiscard]] const SelectionRectWidget* sr() const { return _selectionRect; }
+
+private:
     float _maxZoomLevel;
     float _minZoomLevel;
     float _zoomLevel;
@@ -57,7 +62,14 @@ public:
     void zoomToLevel(float level, const QPointF& p);
 
     void setPixmap(const QPixmap& pixmap);
+    void setPixmapAndRect(const QPixmap& pixmap);
+    void setPixmapAndRect(const QPixmap& pixmap, const QImage& image);
     void setPixmapAndPicker(const QPixmap& pixmap, const vector<PickerElement>& elements);
+
+    void setSRDisabled();
+    void setSRRect();
+    void setSRRect(const QImage& sel);
+    void setSRPicker(const vector<PickerElement>& elements);
 
 protected:
     void updateSelectionRect() const;

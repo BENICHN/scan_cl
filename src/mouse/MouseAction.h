@@ -5,7 +5,7 @@
 #ifndef MOUSEACTION_H
 #define MOUSEACTION_H
 
-#include "../qtimports.h"
+#include "../imports/qtimports.h"
 
 class MouseHandler;
 

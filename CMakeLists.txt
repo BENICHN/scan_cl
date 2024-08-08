@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 project(scan)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -27,8 +27,8 @@ add_executable(scan
         src/widgets/ImageViewerWidget.cpp
         src/widgets/ImageViewerWidget.h
         src/utils.h
-        src/stdimports.h
-        src/qtimports.h
+        src/imports/stdimports.h
+        src/imports/qtimports.h
         src/utils.cpp
         src/mouse/MouseAction.cpp
         src/mouse/MouseAction.h
@@ -57,9 +57,25 @@ add_executable(scan
         src/data/book.cpp
         src/works.cpp
         src/works.h
-        src/qcoroimports.h
-        src/jsonimports.h
-        src/jsonimports.cpp
+        src/imports/qcoroimports.h
+        src/imports/jsonimports.h
+        src/imports/jsonimports.cpp
+        src/steps/Step.cpp
+        src/steps/Step.h
+        src/steps/CroppingStep.cpp
+        src/steps/CroppingStep.h
+        src/steps/MergingStep.cpp
+        src/steps/MergingStep.h
+        src/steps/CleaningStep.cpp
+        src/steps/CleaningStep.h
+        src/steps/FinalStep.cpp
+        src/steps/FinalStep.h
+        src/widgets/PreviewerSelector.cpp
+        src/widgets/PreviewerSelector.h
+        src/widgets/PreviewerSelector.ui
+        src/widgets/SelectionRectTypes.h
+        src/components/PreviewerSelectionTypes.h
+        src/widgets/PreviewerSelectorTypes.h
 )
 target_link_libraries(scan
         Qt::Core
@@ -67,4 +83,5 @@ target_link_libraries(scan
         Qt::Widgets
         QCoro::Core
         nlohmann_json::nlohmann_json
+        xxhash
 )

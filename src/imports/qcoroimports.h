@@ -8,6 +8,8 @@
 #include <QCoro/QCoroTask>
 #include <QCoro/QCoroFuture>
 #include <QCoro/QCoroProcess>
+#include <QCoro/QCoroSignal>
+#include <QCoro/QCoroTimer>
 
 using QCoro::Task;
 

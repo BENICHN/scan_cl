@@ -6,6 +6,17 @@
 
 #include "../app.h"
 
+PickerElement PickerElement::fromStats(const int x, const int y, const int w, const int h, const int W, const int cx,
+    const int cy, const bool selected)
+{
+    return {
+        {cx, cy},
+        {x - PICKER_RADIUS, y - PICKER_RADIUS, w + 2 * PICKER_RADIUS, h + 2 * PICKER_RADIUS},
+        roundedRect(x, y, w, h, 10),
+        selected
+    };
+}
+
 void SelectionRectWidget::SelectMouseAction::onDown()
 {
     _sr->beginSelection(
@@ -66,30 +77,42 @@ SelectionRectWidget::SelectionRectWidget(QWidget* parent) : QWidget(parent)
     updateSelectionMode();
     setFocusPolicy(Qt::FocusPolicy::ClickFocus);
     setMouseTracking(true);
-    connect(app()->globalEventFilter(), &GlobalEventFilter::modifiersChangeEvent, this,
+    connect(&app().globalEventFilter(), &GlobalEventFilter::modifiersChangeEvent, this,
             &SelectionRectWidget::onModifiersChange);
+}
+
+void SelectionRectWidget::resetDisabled()
+{
+    _selectionType = SR_NONE;
+    reset({});
 }
 
 void SelectionRectWidget::resetRect(const QSize& imageSize)
 {
-    _selectionType = Rect;
-    auto img = QImage(imageSize, QImage::Format_Mono);
+    resetRect(QImage(imageSize, QImage::Format_Mono));
+}
+
+void SelectionRectWidget::resetRect(const QImage& sel)
+{
+    _selectionType = SR_RECT;
+    auto img = sel;
     img.fill(0);
     _selection = img;
-    reset(imageSize);
+    reset(sel.size());
 }
 
 void SelectionRectWidget::resetPicker(const QSize& imageSize, const vector<PickerElement>& elements)
 {
-    _selectionType = Picker;
+    _selectionType = SR_PICKER;
     _selection = elements;
     reset(imageSize);
 }
 
 void SelectionRectWidget::beginSelection(const QPoint& value)
 {
+    if (_selectionType == SR_NONE) return;
     updateSelectionMode();
-    if (_selectionType == Rect && _selectionMode == Replace)
+    if (_selectionType == SR_RECT && _selectionMode == Replace)
     {
         get<QImage>(_selection).fill(0);
         updateSelectionRegion();
@@ -106,9 +129,10 @@ void SelectionRectWidget::updateSelection(const QPoint& value)
 
 void SelectionRectWidget::sendSelection()
 {
+    if (_selectionType == SR_NONE) return;
     switch (_selectionType)
     {
-    case Rect:
+    case SR_RECT:
         {
             auto& img = get<QImage>(_selection);
             uchar* sel = img.bits();
@@ -151,7 +175,7 @@ void SelectionRectWidget::sendSelection()
             }
         }
         break;
-    case Picker:
+    case SR_PICKER:
         for (PickerElement& element : get<vector<PickerElement>>(_selection))
         {
             if (element.region.intersects(_currentSelection))
@@ -179,10 +203,10 @@ void SelectionRectWidget::sendSelection()
 
 void SelectionRectWidget::updateSelectionRegion()
 {
-    QRegion selectionRegion = _selectionType == Rect
+    QRegion selectionRegion = _selectionType == SR_RECT
                                   ? QBitmap::fromImage(get<QImage>(_selection))
                                   : QRegion(0, 0, _imageSize.width(), _imageSize.height());
-    if (_selectionType == Picker)
+    if (_selectionType == SR_PICKER)
     {
         for (const PickerElement& element : get<vector<PickerElement>>(_selection))
         {
@@ -210,7 +234,7 @@ void SelectionRectWidget::updateSelectionRegion()
     }
     switch (_selectionType)
     {
-    case Rect:
+    case SR_RECT:
         {
             const QRegion currentSelectionRegion = _currentSelection;
             _selectionRegion = isRemoving()
@@ -218,7 +242,7 @@ void SelectionRectWidget::updateSelectionRegion()
                                    : selectionRegion - currentSelectionRegion;
         }
         break;
-    case Picker:
+    case SR_PICKER:
         _selectionRegion = selectionRegion;
         break;
     }
@@ -233,7 +257,7 @@ void SelectionRectWidget::updateSelectionMode()
 PickerElement* SelectionRectWidget::nearest(const QPoint& p)
 {
     PickerElement* result = nullptr;
-    if (_selectionType == Picker)
+    if (_selectionType == SR_PICKER)
     {
         int minDist = 0;
         const QPoint scaledP = p * _scaleInv;
@@ -323,6 +347,7 @@ void SelectionRectWidget::resizeEvent(QResizeEvent* e)
 
 void SelectionRectWidget::paintEvent(QPaintEvent* e)
 {
+    if (_selectionType == SR_NONE) return;
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.scale(_scale, _scale);
@@ -336,7 +361,7 @@ void SelectionRectWidget::paintEvent(QPaintEvent* e)
     painter.setOpacity(1);
     // draw elements
     const auto mods = QGuiApplication::queryKeyboardModifiers();
-    if (_selectionType == Picker && !(mods & Qt::KeyboardModifier::AltModifier))
+    if (_selectionType == SR_PICKER && !(mods & Qt::KeyboardModifier::AltModifier))
     {
         painter.setPen(QPen(Qt::blue, _scaleInv * 2));
         for (const PickerElement& element : get<vector<PickerElement>>(_selection))

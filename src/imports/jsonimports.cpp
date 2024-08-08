@@ -3,6 +3,7 @@
 //
 
 #include "jsonimports.h"
+#include <QSize>
 
 void to_json(json& j, const QSize& v)
 {

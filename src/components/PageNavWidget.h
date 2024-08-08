@@ -7,7 +7,7 @@
 
 #include <ui_PageNavWidget.h>
 
-#include "../qtimports.h"
+#include "../imports/qtimports.h"
 
 
 QT_BEGIN_NAMESPACE

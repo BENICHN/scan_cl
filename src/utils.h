@@ -5,9 +5,9 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <QCoro/Task>
-
-#include "qtimports.h"
+#include "imports/stdimports.h"
+#include "imports/qtimports.h"
+#include "imports/qcoroimports.h"
 
 vector<uchar> exec(const char* cmd);
 
@@ -49,6 +49,27 @@ void drawText(QPainter & painter, qreal x, qreal y, Qt::Alignment flags,
 void drawText(QPainter & painter, const QPointF & point, Qt::Alignment flags,
               const QString & text, QRectF * boundingRect = {});
 
-QCoro::Task<> delay(int ms);
+Task<> delay(int ms);
+
+template <template<class,class,class...> class C, typename K, typename V, typename... Args>
+V mapAtDef(const C<K,V,Args...>& m, K const& key, const V & defval)
+{
+    typename C<K,V,Args...>::const_iterator it = m.find( key );
+    if (it == m.end())
+        return defval;
+    return it->second;
+}
+template <template<class,class,class...> class C, typename K, typename V, typename... Args>
+V* mapAtNull(const C<K,V,Args...>& m, K const& key)
+{
+    typename C<K,V,Args...>::const_iterator it = m.find( key );
+    if (it == m.end())
+        return nullptr;
+    return &it->second;
+}
+
+string calculateXXH3_64(const string& filePath);
+
+std::istream& ignoreUntil(std::istream& stream, char delimiter);
 
 #endif //UTILS_H

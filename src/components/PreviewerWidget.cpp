@@ -13,8 +13,17 @@ PreviewerWidget::PreviewerWidget(QWidget* parent) :
     QWidget(parent), ui(new Ui::PreviewerWidget)
 {
     ui->setupUi(this);
-    connect(ui->buttonGroup, &QButtonGroup::buttonToggled,
-            [this](QAbstractButton*, const bool checked) { if (checked) { updateMode(); } });
+    connect(&app().book(), &Book::pageStatusChanged, [=](int pageId)
+    {
+        if (pageId == _pageId) // !
+        {
+            updateImageAndRect(true, true); // !
+        }
+    });
+    connect(ui->selector, &PreviewerSelector::selectionChanged, [=]
+    {
+        updateImageAndRect(true, true); // !
+    });
 }
 
 PreviewerWidget::~PreviewerWidget()
@@ -25,39 +34,125 @@ PreviewerWidget::~PreviewerWidget()
 void PreviewerWidget::setPageId(const int id)
 {
     _pageId = id;
-    updateImage();
+    updateImageAndRect(true, true);
 }
 
-void PreviewerWidget::updateImage() const
+// void PreviewerWidget::setAskSettings(const AskSettings askSettings)
+// {
+//     const bool colorChanged = _askSettings.color != askSettings.color;
+//     const bool selectionTypeChanged = _askSettings.selectionType != askSettings.selectionType;
+//     _askSettings = askSettings;
+//     if (colorChanged) updateImage();
+//     if (selectionTypeChanged) updateRect();
+// }
+
+void PreviewerWidget::validateChoice()
+{
+    app().book().applyChoiceToPage(_pageId, ui->iv->sr()->selection());
+}
+
+PreviewerSettings PreviewerWidget::previewerSettings() const
+{
+    if (_pageId == -1)
+    {
+        return {};
+    }
+    const auto& book = app().book();
+    const PreviewerSelection selection = ui->selector->selection();
+    switch (selection.mode)
+    {
+    case PWM_SRC:
+        return {
+            ImageOrigin::SOURCE,
+            selection.color,
+            SR_NONE
+        };
+    case PWM_ASK:
+        {
+            const auto& page = book.page(_pageId);
+            return page.defaultPreviewerSettings();
+        }
+    case PWM_RES:
+        return {
+            ImageOrigin::GENERATED,
+            selection.color,
+            SR_NONE
+        };
+    }
+    throw runtime_error("enum selection.mode is invalid");
+}
+
+void PreviewerWidget::updateImageAndRect(const bool updateImage, const bool updateRect)
 {
     if (_pageId == -1)
     {
         ui->iv->setPixmap(QPixmap());
+        ui->iv->setSRDisabled();
     }
     else
     {
-        Book* book = app()->book();
-        const Page* page = book->get(_pageId);
-        switch (_mode)
+        const auto& book = app().book();
+        const auto settings = previewerSettings();
+        if (updateImage)
         {
-        case SRC:
-            ui->iv->setPixmap(QPixmap((book->sourcesDir() + page->source).c_str()));
-            break;
-        case ASK:
-            break;
-        case RES:
-            ui->iv->setPixmap(QPixmap((book->generatedDir()+to_string(page->id)+".pbm").c_str()));
-            break;
+            switch (settings.color.value())
+            {
+            case PWC_BW:
+                switch (settings.origin.value())
+                {
+                case ImageOrigin::SOURCE:
+                    ui->iv->setPixmap(QPixmap(book.pageSourceBWPath(_pageId).c_str()));
+                    break;
+                case ImageOrigin::GENERATED:
+                    ui->iv->setPixmap(QPixmap(book.pageGeneratedBWPath(_pageId).c_str()));
+                    break;
+                }
+                break;
+            case PWC_CG:
+                switch (settings.origin.value())
+                {
+                case ImageOrigin::SOURCE:
+                    ui->iv->setPixmap(QPixmap(book.pageSourceCGPath(_pageId).c_str()));
+                    break;
+                case ImageOrigin::GENERATED:
+                    ui->iv->setPixmap(QPixmap(book.pageGeneratedCGPath(_pageId).c_str()));
+                    break;
+                }
+                break;
+            case PWC_MIX:
+                ui->iv->setPixmap(QPixmap::fromImage(book.pageGeneratedMixImage(_pageId)));
+                break;
+            }
+        }
+        if (updateRect)
+        {
+            switch (settings.selectionType.value())
+            {
+            case SR_NONE:
+                ui->iv->setSRDisabled();
+                break;
+            case SR_RECT:
+                ui->iv->setSRRect(); // !
+                break;
+            case SR_PICKER:
+                ui->iv->setSRPicker(book.pageGeneratedBigs(_pageId)); // !
+                break;
+            }
         }
     }
 }
 
-void PreviewerWidget::updateMode()
+void PreviewerWidget::keyPressEvent(QKeyEvent* event)
 {
-    const PreviewerMode newMode = ui->srcButton->isChecked() ? SRC : ui->askButton->isChecked() ? ASK : RES;
-    if (newMode != _mode)
+    switch (event->key())
     {
-        _mode = newMode;
-        updateImage();
+    case Qt::Key_Enter:
+        {
+            validateChoice();
+        }
+        break;
+    default:
+        break;
     }
+    QWidget::keyPressEvent(event);
 }

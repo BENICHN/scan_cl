@@ -7,6 +7,7 @@
 #include <QApplication>
 #include "MainWindow.h"
 #include "works.h"
+#include "data/book.h"
 
 class GlobalEventFilter final : public QObject
 {
@@ -21,41 +22,21 @@ protected:
 class App final : public QApplication
 {
     Q_OBJECT
+    Book _book;
+    Works _works;
     GlobalEventFilter _eventFilter;
     MainWindow _mainWindow;
-    Works _works;
-    Book _book = {
-        "/home/benichn/prog/cpp/scan/testBook",
-        "Test",
-        {
-            true, QSize(3000, 5000),
-            60, 250, 10, 50, 234, 20, 240, 0.5, 15000, QSize(110, 12), 4000
-        },
-        {
-            Page{rand(), PT_GRAY, "test.png", 1, {}, {}, PST_READY},
-            Page{rand(), PT_GRAY, "test.png", 1, {}, {}, PST_READY},
-            Page{rand(), PT_GRAY, "test.png", 1, {}, {}, PST_READY},
-            Page{rand(), PT_GRAY, "test.png", 1, {}, {}, PST_READY},
-            Page{rand(), PT_GRAY, "test.png", 1, {}, {}, PST_READY},
-            Page{rand(), PT_GRAY, "test.png", 1, {}, {}, PST_READY},
-            Page{rand(), PT_GRAY, "test.png", 1, {}, {}, PST_READY},
-            Page{rand(), PT_GRAY, "test.png", 1, {}, {}, PST_READY}
-        }
-    };
 
 public:
-    App(int& argc, char** argv);
+    App(int &argc, char** argv);
 
     static App* instance() { return dynamic_cast<App*>(QApplication::instance()); }
-    [[nodiscard]] Book* book() { return &_book; }
-    [[nodiscard]] MainWindow* mainWindow() { return &_mainWindow; }
-    [[nodiscard]] GlobalEventFilter* globalEventFilter() { return &_eventFilter; }
-    [[nodiscard]] Works* works() { return &_works; }
-
-signals:
-    void pageStatusChanged(int pageId);
+    [[nodiscard]] Book& book() { return _book; }
+    [[nodiscard]] MainWindow& mainWindow() { return _mainWindow; }
+    [[nodiscard]] GlobalEventFilter& globalEventFilter() { return _eventFilter; }
+    [[nodiscard]] Works& works() { return _works; }
 };
 
-inline App* app() { return App::instance(); }
+inline App& app() { return *App::instance(); }
 
 #endif //APP_H

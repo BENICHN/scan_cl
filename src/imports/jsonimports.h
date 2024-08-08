@@ -7,7 +7,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "qtimports.h"
+class QSize;
 
 using nlohmann::json;
 

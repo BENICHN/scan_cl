@@ -5,8 +5,8 @@
 #ifndef WORKS_H
 #define WORKS_H
 
-#include "stdimports.h"
-#include "qcoroimports.h"
+#include "imports/stdimports.h"
+#include "imports/qcoroimports.h"
 
 struct Work
 {
@@ -15,15 +15,21 @@ struct Work
     bool stopAtAsk = false;
 };
 
-class Works {
-    queue<Work> waitingWorks;
-    unordered_map<int, Work> runningWorks;
+class Works final : public QObject
+{
+    Q_OBJECT
+    deque<Work> _waitingWorks;
+    unordered_map<int, Work> _runningWorks;
+
 public:
-    void enqueue(const Work& work);
+    bool enqueue(const Work& work);
+    bool isEnqueued(int pageId);
+
 private:
     Task<> launch();
+signals:
+    void workFinished();
 };
-
 
 
 #endif //WORKS_H

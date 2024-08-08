@@ -168,22 +168,7 @@ def process_img(gray, clr, op):
     small_ccs_mask = (~np.isin(lab, small_ccs)).astype('uint8')
     bw4 = bw3 * small_ccs_mask
     
-    # Détection des gros blocs
-    
-    big_ccs = np.nonzero(~small_ccs_filter)[0][1:]
-    big_ccs_means = means(255-flipped, lab, n, stats, big_ccs)
-    big_light_ccs = big_ccs[big_ccs_means < op['maxBigCCColorMean']].astype('i')
-    big_light_ccs_mask = (np.isin(lab, big_light_ccs)).astype('uint8')
-
-    bw4_blurred = (cv2.blur(bw4 * 255, ksize=op['blurSize']) > 0).astype('uint8')
-    n_blurred, lab_blurred, stats_blurred, cent_blurred = cv2.connectedComponentsWithStats(bw4_blurred)
-    big_ccs_blurred = np.nonzero(stats_blurred[:,4] < op['maxBlurredCCArea'])
-    big_ccs_blurred_mask = (np.isin(lab_blurred, big_ccs_blurred)).astype('uint8')
-    big_ccs_mask = big_ccs_blurred_mask * bw4
-
-    big_ccs_total_mask = ((big_light_ccs_mask + big_ccs_mask) > 0).astype('uint8')
-    
-    return (bw4, big_ccs_total_mask) if colorMode == 'PT_BLACK' else (bw4, adjusted_clr, big_ccs_total_mask)
+    return bw4 if colorMode == 'PT_BLACK' else bw4, adjusted_clr
         
     # Effacement des gros blocs
 ##             newbmask = big_ccs_total_mask.copy()
@@ -242,61 +227,48 @@ def process_img(gray, clr, op):
 f = open('log.log', 'w')
 
 try:
-    f.write(str(sys.argv))
-    # f.write('\n')
     settings = sys.argv[1]
-    # f.write(settings)
-    # f.write('\n')
+    f.write(settings)
+    f.write('\n')
     stgs = json.loads(settings)
-    # f.write(str(stgs))
-    # f.write('\n')
     if stgs['colorMode'] == 'PT_BLACK':
         source = sys.argv[2]
         destDir = sys.argv[3]
         destName = sys.argv[4]
-        # f.write(source)
-        # f.write('\n')
-        # f.write(destDir)
-        # f.write('\n')
-        # f.write(destName)
-        # f.write('\n')
+        f.write(source)
+        f.write('\n')
+        f.write(destDir)
+        f.write('\n')
+        f.write(destName)
+        f.write('\n')
     else:
         source = sys.argv[2]
         colorSource = sys.argv[3]
         destDir = sys.argv[4]
         destName = sys.argv[5]
-        # f.write("source : ")
-        # f.write(source)
-        # f.write('\n')
-        # f.write("colorSource : ")
-        # f.write(colorSource)
-        # f.write('\n')
-        # f.write("destDir : ")
-        # f.write(destDir)
-        # f.write('\n')
-        # f.write("destName : ")
-        # f.write(destName)
-        # f.write('\n')
+        f.write(source)
+        f.write('\n')
+        f.write(colorSource)
+        f.write('\n')
+        f.write(destDir)
+        f.write('\n')
+        f.write(destName)
+        f.write('\n')
 
     gray = cv2.imread(source, cv2.IMREAD_GRAYSCALE)
     match stgs['colorMode']:
         case 'PT_BLACK':
-            bw, bccmask = process_img(gray, None, stgs)
-            cv2.imwrite(f'{destDir}/{destName}_bigs.pbm', bccmask)
+            bw = process_img(gray, None, stgs)
             cv2.imwrite(f'{destDir}/{destName}.pbm', bw)
         case 'PT_GRAY':
             color = cv2.imread(source, cv2.IMREAD_GRAYSCALE)
-            bw, clr, bccmask = process_img(gray, color, stgs)
-            cv2.imwrite(f'{destDir}/{destName}_bigs.pbm', bccmask)
+            bw, clr = process_img(gray, color, stgs)
             cv2.imwrite(f'{destDir}/{destName}.pbm', bw)
             cv2.imwrite(f'{destDir}/{destName}.pgm', clr)
         case 'PT_COLOR':
             color = cv2.imread(source, cv2.IMREAD_COLOR)
-            bw, clr, bccmask = process_img(gray, color, stgs)
-            cv2.imwrite(f'{destDir}/{destName}_bigs.pbm', bccmask)
+            bw, clr = process_img(gray, color, stgs)
             cv2.imwrite(f'{destDir}/{destName}.pbm', bw)
             cv2.imwrite(f'{destDir}/{destName}.ppm', clr)
 except Exception as e:
-    f.write("ex : ")
     f.write(str(e))
-    raise

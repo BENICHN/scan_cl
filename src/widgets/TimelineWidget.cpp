@@ -14,11 +14,11 @@ TimelineWidget::TimelineWidget(QWidget* parent) :
     QWidget(parent), ui(new Ui::TimelineWidget)
 {
     ui->setupUi(this);
-    connect(app(), &App::pageStatusChanged, [this](int pageId)
+    connect(&app().book(), &Book::pageStatusChanged, [=](int pageId)
     {
         if (pageId == _pageId)
         {
-            updateSteps();
+            update();
         }
     });
     // ui->stepAssembl->setStyleSheet(R"(
@@ -36,22 +36,27 @@ TimelineWidget::~TimelineWidget()
 void TimelineWidget::setPageId(int id)
 {
     _pageId = id;
-    updateSteps();
+    update();
 }
 
 void TimelineWidget::paintEvent(QPaintEvent* event)
 {
-    if (_steps.size() == 0) return;
+    if (_pageId == -1) return;
+    const auto& steps = app().book().page(_pageId).steps;
+    auto sz = str::count_if(steps, [](const auto& step) { return step->enabled(); });
+    if (sz == 0) return;
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     const int w = width();
     const int h = height();
     painter.setClipRegion(roundedRectInner(0, 0, w, h, RADIUS));
     painter.setBrush(Qt::white);
-    const float xStep = w / _steps.size();
+    const float xStep = w / sz;
     const int cy = h / 2;
-    for (int i = 0; i < _steps.size(); ++i)
+    int i = 0;
+    for (const auto& step : steps)
     {
+        if (!step->enabled()) continue;
         // make poly
         QPolygon poly;
         if (i == 0)
@@ -68,7 +73,7 @@ void TimelineWidget::paintEvent(QPaintEvent* event)
                 << QPoint{x + ARROW_RADIUS, cy}
                 << QPoint{x - ARROW_RADIUS, h};
         }
-        if (i == _steps.size() - 1)
+        if (i == sz - 1)
         {
             poly
                 << QPoint{w, h}
@@ -83,23 +88,22 @@ void TimelineWidget::paintEvent(QPaintEvent* event)
                 << QPoint{x - ARROW_RADIUS, 0};
         }
         // fill polygons
-        const TimelineStep step = _steps[i];
         painter.setPen(Qt::NoPen);
-        switch (step.status)
+        switch (step->status)
         {
-        case PST_READY:
+        case SST_NOTRUN:
             painter.setBrush(Qt::white);
             break;
-        case PST_WORKING:
+        case SST_WORKING:
             painter.setBrush(Color::orange);
             break;
-        case PST_WAITING:
+        case SST_WAITING:
             painter.setBrush(Color::sunFlower);
             break;
-        case PST_COMPLETED:
+        case SST_COMPLETE:
             painter.setBrush(Color::emerald);
             break;
-        case PST_ERROR:
+        case SST_ERROR:
             painter.setBrush(Color::alizarin);
             break;
         }
@@ -112,48 +116,8 @@ void TimelineWidget::paintEvent(QPaintEvent* event)
         if (i > 0) { painter.drawPolyline(poly.data(), 3); }
         // draw text
         const int tx = (i + .5f) * xStep;
-        drawText(painter, tx, cy, Qt::AlignCenter, step.name.c_str());
+        drawText(painter, tx, cy, Qt::AlignCenter, step->name().c_str());
+        if (step->enabled()) ++i;
     }
     QWidget::paintEvent(event);
-}
-
-void TimelineWidget::updateSteps()
-{
-    if (_pageId == -1)
-    {
-        _steps = {};
-    }
-    else
-    {
-        const Page* page = app()->book()->get(_pageId);
-        switch (page->colorMode)
-        {
-        case PT_BLACK:
-            _steps = {
-                {PS_CROPPING, "Recadrage", PST_READY},
-                {PS_CLEANING, "Nettoyage", PST_READY},
-                {PS_FINAL, "Finalisation", PST_READY}
-            };
-        case PT_COLOR:
-        case PT_GRAY:
-            _steps = {
-                {PS_CROPPING, "Recadrage", PST_READY},
-                {PS_MERGING, "Assemblage", PST_READY},
-                {PS_CLEANING, "Nettoyage", PST_READY},
-                {PS_FINAL, "Finalisation", PST_READY}
-            };
-        }
-        int i = 0;
-        if (page->lastStep)
-        {
-            for (TimelineStep& step : _steps)
-            {
-                i++;
-                step.status = PST_COMPLETED;
-                if (step.id == page->lastStep) break;
-            }
-        }
-        _steps[i].status = page->status;
-    }
-    update();
 }

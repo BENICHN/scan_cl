@@ -5,7 +5,7 @@
 #ifndef TIMELINEWIDGET_H
 #define TIMELINEWIDGET_H
 
-#include "../qtimports.h"
+#include "../imports/qtimports.h"
 #include "../data/book.h"
 
 QT_BEGIN_NAMESPACE
@@ -17,17 +17,9 @@ namespace Ui
 
 QT_END_NAMESPACE
 
-struct TimelineStep
-{
-    PageStep id;
-    string name;
-    PageStatus status;
-};
-
 class TimelineWidget final : public QWidget
 {
     Q_OBJECT
-    vector<TimelineStep> _steps;
     int _pageId = -1;
 
 public:
@@ -38,7 +30,6 @@ public:
 
 private:
     void paintEvent(QPaintEvent* event) override;
-    void updateSteps();
 
     Ui::TimelineWidget* ui;
 

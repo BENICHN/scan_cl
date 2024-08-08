@@ -5,7 +5,7 @@
 #ifndef PAGESMODEL_H
 #define PAGESMODEL_H
 
-#include "../../qtimports.h"
+#include "../../imports/qtimports.h"
 #include "../../data/book.h"
 
 class PagesModel final : public QAbstractListModel {

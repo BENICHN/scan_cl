@@ -5,8 +5,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "data/book.h"
-
+#include <QWidget>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -21,10 +20,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    int uniqueSelectedId() const;
-
-public slots:
-    void pageNavSelectionChanged();
+    [[nodiscard]] int uniqueSelectedId() const;
 };
 
 

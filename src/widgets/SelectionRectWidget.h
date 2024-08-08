@@ -8,49 +8,9 @@
 #include "../utils.h"
 #include "../mouse/MouseAction.h"
 #include "../mouse/MouseHandler.h"
+#include "SelectionRectTypes.h"
 
 constexpr int PICKER_RADIUS = 10;
-
-enum ButtonState
-{
-    None,
-    Hovered,
-    Pressed
-};
-
-enum SelectionType
-{
-    Rect,
-    Picker
-};
-
-enum SelectionMode
-{
-    Replace,
-    Add,
-    Substract
-};
-
-struct PickerElement
-{
-    QPoint centroid;
-    QRect regionBounds;
-    QRegion region;
-    bool selected;
-
-    static PickerElement fromStats(const int x, const int y, const int w, const int h, const int W,
-                                   const int cx, const int cy, const bool selected)
-    {
-        return {
-            {cx, cy},
-            {x - PICKER_RADIUS, y - PICKER_RADIUS, w + 2 * PICKER_RADIUS, h + 2 * PICKER_RADIUS},
-            roundedRect(x, y, w, h, 10),
-            selected
-        };
-    }
-};
-
-using SelectionInfo = variant<QImage, vector<PickerElement>>;
 
 class SelectionRectWidget final : public QWidget
 {
@@ -86,7 +46,7 @@ class SelectionRectWidget final : public QWidget
         }
     } _mouseHandler{this};
 
-    SelectionType _selectionType = Rect;
+    SelectionType _selectionType = SR_NONE;
     SelectionInfo _selection;
     QRegion _selectionRegion;
     QPoint _currentSelectionOrigin;
@@ -112,7 +72,9 @@ public:
     [[nodiscard]] SelectionType type() const { return _selectionType; }
     [[nodiscard]] bool isRemoving() const { return _selectionMode == Substract; }
 
+    void resetDisabled();
     void resetRect(const QSize& imageSize);
+    void resetRect(const QImage& sel);
     void resetPicker(const QSize& imageSize, const vector<PickerElement>& elements);
 
     void beginSelection(const QPoint& value);
@@ -120,10 +82,11 @@ public:
 
     void sendSelection();
 
-    void updateSelectionRegion();
-    void updateSelectionMode();
+    [[nodiscard]] const SelectionInfo& selection() const { return _selection; }
+    [[nodiscard]] const QImage& selectionRect() const { return get<QImage>(_selection); }
+    [[nodiscard]] const vector<PickerElement>& selectionElements() const { return get<vector<PickerElement>>(_selection); }
 
-protected:
+private:
     void pickNearest();
     void reset(const QSize& imageSize);
     void updateScale();
@@ -134,6 +97,8 @@ protected:
     void resizeEvent(QResizeEvent* e) override;
     void paintEvent(QPaintEvent* e) override;
     bool event(QEvent* e) override;
+    void updateSelectionRegion();
+    void updateSelectionMode();
 
 public slots:
     void onModifiersChange(Qt::KeyboardModifiers value);

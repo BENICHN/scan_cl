@@ -65,7 +65,25 @@ void ImageViewerWidget::zoomToLevel(const float level, const QPointF& p)
 void ImageViewerWidget::setPixmap(const QPixmap& pixmap)
 {
     _pixmap = pixmap;
+    _selectionRect->resetDisabled();
+    _imageLabel->setPixmap(_pixmap);
+    computeZoomLevels();
+    zoomToLevel(0, QPointF());
+}
+
+void ImageViewerWidget::setPixmapAndRect(const QPixmap& pixmap)
+{
+    _pixmap = pixmap;
     _selectionRect->resetRect(_pixmap.size());
+    _imageLabel->setPixmap(_pixmap);
+    computeZoomLevels();
+    zoomToLevel(0, QPointF());
+}
+
+void ImageViewerWidget::setPixmapAndRect(const QPixmap& pixmap, const QImage& image)
+{
+    _pixmap = pixmap;
+    _selectionRect->resetRect(image);
     _imageLabel->setPixmap(_pixmap);
     computeZoomLevels();
     zoomToLevel(0, QPointF());
@@ -78,6 +96,26 @@ void ImageViewerWidget::setPixmapAndPicker(const QPixmap& pixmap, const vector<P
     _imageLabel->setPixmap(_pixmap);
     computeZoomLevels();
     zoomToLevel(0, QPointF());
+}
+
+void ImageViewerWidget::setSRDisabled()
+{
+    _selectionRect->resetDisabled();
+}
+
+void ImageViewerWidget::setSRRect()
+{
+    _selectionRect->resetRect(_pixmap.size());
+}
+
+void ImageViewerWidget::setSRRect(const QImage& sel)
+{
+    _selectionRect->resetRect(sel);
+}
+
+void ImageViewerWidget::setSRPicker(const vector<PickerElement>& elements)
+{
+    _selectionRect->resetPicker(_pixmap.size(), elements);
 }
 
 void ImageViewerWidget::updateSelectionRect() const

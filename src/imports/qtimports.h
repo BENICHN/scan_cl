@@ -7,6 +7,5 @@
 
 #include <QtGui>
 #include <QWidget>
-#include "stdimports.h"
 
 #endif //QTIMPORTS_H

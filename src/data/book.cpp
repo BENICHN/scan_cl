@@ -6,6 +6,7 @@
 
 #include "../app.h"
 #include "../utils.h"
+#include "../imports/opencvimports.h"
 
 // const Step* Page::nextStep() const
 // {
@@ -16,11 +17,12 @@
 //     return nullptr;
 // }
 
-Page::Page(const int id, PageColorMode color_mode, string source, const optional<string>& cg_source, const int sub_page): id(id),
-    colorMode(color_mode),
-    source(std::move(source)),
-    cgSource(cg_source),
-    subPage(sub_page)
+Page::Page(const int id, PageColorMode color_mode, string source, const optional<string>& cg_source,
+           const int sub_page): id(id),
+                                colorMode(color_mode),
+                                source(std::move(source)),
+                                cgSource(cg_source),
+                                subPage(sub_page)
 {
     steps.emplace_back(make_unique<CroppingStep>(CroppingStep(id)));
     steps.emplace_back(make_unique<MergingStep>(MergingStep(id))); // !
@@ -176,7 +178,7 @@ Book::Book(string root, string title, const unordered_map<string, json>& global_
     _title(std::move(title)),
     _globalSettings(global_settings)
 {
-    insertPageBack(Page{10, PT_GRAY, "test.png", "test.png", 1});
+    insertPageBack(Page{10, PT_COLOR, "test.png", "test.png", 1});
     insertPageBack(Page{20, PT_GRAY, "test.png", "test.png", 1});
     insertPageBack(Page{30, PT_GRAY, "test.png", "test.png", 1});
     insertPageBack(Page{40, PT_GRAY, "test.png", "test.png", 1});
@@ -251,22 +253,22 @@ bool Book::pageMixedAvailable(const int id) const
     return page(id).mergingStep().status == SST_COMPLETE;
 }
 
-QImage Book::pageGeneratedMixImage(const int id) const
+QPixmap Book::pageGeneratedMixPixmap(const int id) const
 {
-    // QImage mask = pageMergingMask(id);
-    // QImage bw = pageGeneratedBWImage(id);
-    // QImage cg = pageGeneratedCGImage(id);
-    // return bw; // !
+    const bool color = page(id).colorMode == PT_COLOR;
+    const auto flag = color ? cv::IMREAD_COLOR : cv::IMREAD_GRAYSCALE;
+
+    const auto mask = imread(pageMergingMaskPath(id), cv::IMREAD_GRAYSCALE);
+    auto bw = imread(pageGeneratedBWPath(id), flag);
+    const auto cg = imread(pageGeneratedCGPath(id), flag);
+    cg.copyTo(bw, mask);
+
+    return QPixmap::fromImage({bw.data, bw.cols, bw.rows, bw.step, color ? QImage::Format::Format_BGR888 : QImage::Format_Grayscale8});
 }
 
 string Book::pageGeneratedBigsMaskPath(const int id) const
 {
     return generatedDir() + to_string(id) + "_bigs.pbm";
-}
-
-vector<PickerElement> Book::pageGeneratedBigs(const int id) const
-{
-    // !
 }
 
 string Book::pageChosenBigsPath(const int id) const
@@ -304,7 +306,7 @@ bool Book::choosePageBigs(const int id, const vector<PickerElement>& elements) c
     file << calculateXXH3_64(pageGeneratedBigsMaskPath(id)) << '\n';
     for (int i = 0; i < elements.size(); ++i)
     {
-        if (elements[0].selected) file << i << ' ';
+        if (elements[i].selected) file << i << ' ';
     }
     return true; // !
 }

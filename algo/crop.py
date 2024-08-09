@@ -183,7 +183,7 @@ def process_img(gray, clr, op):
 
     big_ccs_total_mask = ((big_light_ccs_mask + big_ccs_mask) > 0).astype('uint8')
     
-    return (bw4, big_ccs_total_mask) if colorMode == 'PT_BLACK' else (bw4, adjusted_clr, big_ccs_total_mask)
+    return (1-bw4, big_ccs_total_mask) if colorMode == 'PT_BLACK' else (1-bw4, adjusted_clr, big_ccs_total_mask)
         
     # Effacement des gros blocs
 ##             newbmask = big_ccs_total_mask.copy()

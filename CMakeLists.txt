@@ -21,6 +21,9 @@ find_package(QCoro6 COMPONENTS
 find_package(nlohmann_json
         REQUIRED)
 
+find_package(OpenCV
+        REQUIRED)
+
 add_executable(scan
         resources.qrc
         src/main.cpp
@@ -76,6 +79,8 @@ add_executable(scan
         src/widgets/SelectionRectTypes.h
         src/components/PreviewerSelectionTypes.h
         src/widgets/PreviewerSelectorTypes.h
+        src/imports/opencvimports.h
+        src/imports/opencvimports.cpp
 )
 target_link_libraries(scan
         Qt::Core
@@ -84,4 +89,5 @@ target_link_libraries(scan
         QCoro::Core
         nlohmann_json::nlohmann_json
         xxhash
+        ${OpenCV_LIBS}
 )

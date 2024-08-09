@@ -5,10 +5,13 @@
 #ifndef CLEANINGSTEP_H
 #define CLEANINGSTEP_H
 #include "Step.h"
+#include "../imports/opencvimports.h"
 
 
 class CleaningStep final : public Step {
     // vector<int> _selectedElements;
+    mutable optional<CCStats> _stats;
+    CCStats& stats() const;
 
 public:
     explicit CleaningStep(int pageId);

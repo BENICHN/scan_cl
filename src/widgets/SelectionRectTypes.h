@@ -5,6 +5,7 @@
 #ifndef SELECTIONRECTTYPES_H
 #define SELECTIONRECTTYPES_H
 
+#include "../imports/opencvimports.h"
 #include "../imports/stdimports.h"
 #include "../imports/qtimports.h"
 
@@ -36,9 +37,11 @@ struct PickerElement
     QRegion region;
     bool selected;
 
-    static PickerElement fromStats(int x, int y, int w, int h, int W,
+    static PickerElement fromStats(int x, int y, int w, int h,
                                    int cx, int cy, bool selected);
 };
+
+vector<PickerElement> pickerElementsFromStats(const CCStats& st);
 
 using SelectionInfo = variant<QImage, vector<PickerElement>>;
 

@@ -153,11 +153,10 @@ public:
     bool chooseMergingMask(int id, const QImage& mask) const;
     // mix
     bool pageMixedAvailable(int id) const;
-    QImage pageGeneratedMixImage(int id) const;
+    QPixmap pageGeneratedMixPixmap(int id) const;
 
     // cleaning generated
     string pageGeneratedBigsMaskPath(int id) const;
-    vector<PickerElement> pageGeneratedBigs(int id) const;
     // chosen
     string pageChosenBigsPath(int id) const;
     bool pageChosenBigsAvailable(int id) const;

@@ -120,7 +120,7 @@ void PreviewerWidget::updateImageAndRect(const bool updateImage, const bool upda
                 }
                 break;
             case PWC_MIX:
-                ui->iv->setPixmap(QPixmap::fromImage(book.pageGeneratedMixImage(_pageId)));
+                ui->iv->setPixmap(book.pageGeneratedMixPixmap(_pageId));
                 break;
             }
         }
@@ -132,10 +132,11 @@ void PreviewerWidget::updateImageAndRect(const bool updateImage, const bool upda
                 ui->iv->setSRDisabled();
                 break;
             case SR_RECT:
-                ui->iv->setSRRect(); // !
+                if (settings.selection.has_value()) ui->iv->setSRRect(get<QImage>(settings.selection.value()));
+                else ui->iv->setSRRect();
                 break;
             case SR_PICKER:
-                ui->iv->setSRPicker(book.pageGeneratedBigs(_pageId)); // !
+                ui->iv->setSRPicker(get<vector<PickerElement>>(settings.selection.value()));
                 break;
             }
         }

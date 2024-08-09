@@ -19,6 +19,7 @@ struct PreviewerSettings
     optional<ImageOrigin> origin;
     optional<PreviewerColor> color;
     optional<SelectionType> selectionType;
+    optional<SelectionInfo> selection;
 };
 
 #endif //PREVIEWERSELECTIONTYPES_H

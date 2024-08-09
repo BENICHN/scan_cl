@@ -6,15 +6,28 @@
 
 #include "../app.h"
 
-PickerElement PickerElement::fromStats(const int x, const int y, const int w, const int h, const int W, const int cx,
+PickerElement PickerElement::fromStats(const int l, const int t, const int w, const int h, const int cx,
     const int cy, const bool selected)
 {
     return {
         {cx, cy},
-        {x - PICKER_RADIUS, y - PICKER_RADIUS, w + 2 * PICKER_RADIUS, h + 2 * PICKER_RADIUS},
-        roundedRect(x, y, w, h, 10),
+        {l - PICKER_RADIUS, t - PICKER_RADIUS, w + 2 * PICKER_RADIUS, h + 2 * PICKER_RADIUS},
+        roundedRect(l, t, w, h, 10),
         selected
     };
+}
+
+vector<PickerElement> pickerElementsFromStats(const CCStats& st)
+{
+    vector<PickerElement> res(st.stats.rows-1);
+    for (int i = 1; i < st.stats.rows; ++i)
+    {
+        const auto* row = reinterpret_cast<const int*>(st.stats.ptr(i));
+        const auto* cRow = reinterpret_cast<const int*>(st.centroids.ptr(i));
+        res[i-1] = PickerElement::fromStats(
+            row[0], row[1], row[2], row[3], cRow[0], cRow[1], false);
+    }
+    return res;
 }
 
 void SelectionRectWidget::SelectMouseAction::onDown()
@@ -156,18 +169,18 @@ void SelectionRectWidget::sendSelection()
                 std::fill(beg + lqr.quot + 1, beg + rqr.quot, 255);
             }
 
-            for (int i = cSel.top(); i < cSel.bottom(); i++)
+            for (int i = cSel.top(); i < cSel.bottom(); ++i)
             {
                 if (isRemoving())
                 {
-                    for (int j = lqr.quot; j <= rqr.quot; j++)
+                    for (int j = lqr.quot; j <= rqr.quot; ++j)
                     {
                         sel[i * w + j] &= ~maskLine[j];
                     }
                 }
                 else
                 {
-                    for (int j = lqr.quot; j <= rqr.quot; j++)
+                    for (int j = lqr.quot; j <= rqr.quot; ++j)
                     {
                         sel[i * w + j] |= maskLine[j];
                     }

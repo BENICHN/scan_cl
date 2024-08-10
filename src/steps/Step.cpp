@@ -21,3 +21,18 @@ json Step::realSettings() const
     if (settings.is_object()) res.update(settings);
     return res;
 }
+
+json Step::toJson()
+{
+    return {
+        {"name", name()},
+        {"settings", settings},
+        {"status", status}
+    };
+}
+
+void Step::restoreJson(const json& j)
+{
+    settings = j.at("settings");
+    status = j.at("status");
+}

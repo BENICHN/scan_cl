@@ -42,5 +42,6 @@ using std::ostringstream;
 using std::runtime_error;
 
 namespace str = std::ranges;
+namespace stv = std::ranges::views;
 
 #endif //STDIMPORTS_H

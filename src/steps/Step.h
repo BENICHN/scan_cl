@@ -21,6 +21,14 @@ enum StepSataus
     SST_ERROR
 };
 
+NLOHMANN_JSON_SERIALIZE_ENUM(StepSataus, {
+                             {SST_NOTRUN, "SST_NOTRUN"},
+                             {SST_COMPLETE, "SST_COMPLETE"},
+                             {SST_WORKING, "SST_WORKING"},
+                             {SST_WAITING, "SST_WAITING"},
+                             {SST_ERROR, "SST_ERROR"}
+                             })
+
 struct Step
 {
     StepSataus status = SST_NOTRUN;
@@ -39,6 +47,8 @@ public:
     [[nodiscard]] virtual string name() const = 0;
     [[nodiscard]] virtual PreviewerSettings previewerSettings() const { return {}; }
     [[nodiscard]] json realSettings() const;
+    virtual json toJson();
+    virtual void restoreJson(const json& j);
 };
 
 

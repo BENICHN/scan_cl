@@ -60,12 +60,13 @@ App::App(int& argc, char** argv): QApplication(argc, argv), _book({
                                                   {"forcedTopCm", -1.0f},
                                                   {"forcedBottomCm", -1.0f},
                                                   {"headerHeightCm", 2.75f},
-                                                  {"alignmentH", 'l'},
-                                                  {"alignmentV", 't'},
+                                                  {"alignmentH", "l"},
+                                                  {"alignmentV", "t"},
                                               }
                                           },
                                       }
                                   })
 {
     installEventFilter(&_eventFilter);
+    QImageReader::setAllocationLimit(512);
 }

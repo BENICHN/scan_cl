@@ -21,7 +21,7 @@ QVariant PagesModel::data(const QModelIndex& index, int role) const
     case Qt::DisplayRole:
         return index.row();
     case Qt::DecorationRole:
-         return QPixmap(app().book().getPageSourceThumbnail(app().book().ids()[index.row()]).c_str());
+         return QPixmap(app().book().getPageSourceThumbnail(app().book().ids().at(index.row())).c_str());
     }
     return {};
 }

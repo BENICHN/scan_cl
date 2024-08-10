@@ -5,7 +5,6 @@
 #ifndef FINALSTEP_H
 #define FINALSTEP_H
 #include "Step.h"
-#include "../imports/jsonimports.h"
 
 class FinalStep final : public Step
 {

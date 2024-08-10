@@ -15,7 +15,7 @@ bool Works::enqueue(const Work& work)
     return true;
 }
 
-bool Works::isEnqueued(int pageId)
+bool Works::isEnqueued(const int pageId)
 {
     return _runningWorks.contains(pageId) || str::any_of(_waitingWorks, [=](const Work& work)
     {
@@ -40,13 +40,13 @@ Task<> runWork(const Work& work)
                 }
             }
         }
-        else if (!work.allSteps || book.page(work.pageId).status() == PST_COMPLETED) break;
+        else if (!work.allSteps || res == SST_ERROR || book.page(work.pageId).status() == PST_COMPLETED) break;
     }
 }
 
 Task<> Works::launch()
 {
-    if (!_runningWorks.empty()) co_return;
+    if (_waitingWorks.size() > 1) co_return;
     while (true)
     {
         if (_waitingWorks.empty() && _runningWorks.empty()) co_return;

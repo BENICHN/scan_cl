@@ -10,6 +10,7 @@
 #include <QCoro/QCoroProcess>
 #include <QCoro/QCoroSignal>
 #include <QCoro/QCoroTimer>
+#include <QtConcurrent/qtconcurrentrun.h>
 
 using QCoro::Task;
 

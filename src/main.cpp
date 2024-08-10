@@ -6,5 +6,7 @@ int main(int argc, char* argv[])
 {
     App a(argc, argv);
     a.mainWindow().showMaximized();
-    return QApplication::exec();
+    int res = QApplication::exec();
+    a.book().save();
+    return res;
 }

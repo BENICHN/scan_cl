@@ -41,7 +41,7 @@ struct PickerElement
                                    int cx, int cy, bool selected);
 };
 
-vector<PickerElement> pickerElementsFromStats(const CCStats& st);
+vector<PickerElement> pickerElementsFromStats(const CCStats& st, bool selected);
 
 using SelectionInfo = variant<QImage, vector<PickerElement>>;
 

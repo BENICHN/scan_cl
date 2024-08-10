@@ -4,6 +4,8 @@
 
 #include "book.h"
 
+#include <utility>
+
 #include "../app.h"
 #include "../utils.h"
 #include "../imports/opencvimports.h"
@@ -85,6 +87,7 @@ PageStatus Page::status() const
 {
     for (const auto& s : steps)
     {
+        if (!s->enabled()) continue;
         switch (s->status)
         {
         case SST_NOTRUN:
@@ -174,13 +177,25 @@ bool Book::insertPageBack(Page&& page)
     return insertPage(_pages.size(), std::move(page));
 }
 
-Book::Book(string root, string title, const unordered_map<string, json>& global_settings): _root(std::move(root)),
-    _title(std::move(title)),
-    _globalSettings(global_settings)
+string Book::savingPath() const
+{
+    return _root+"/book.json";
+}
+
+void Book::save()
+{
+    const json j = *this;
+    ofstream file(savingPath());
+    file << j.dump(2);
+}
+
+Book::Book(string root, string title, json global_settings): _root(std::move(root)),
+                                                             _title(std::move(title)),
+                                                             _globalSettings(std::move(global_settings))
 {
     insertPageBack(Page{10, PT_COLOR, "test.png", "test.png", 1});
     insertPageBack(Page{20, PT_GRAY, "test.png", "test.png", 1});
-    insertPageBack(Page{30, PT_GRAY, "test.png", "test.png", 1});
+    insertPageBack(Page{30, PT_GRAY, "test2-1.png", "test2-2.png", 1});
     insertPageBack(Page{40, PT_GRAY, "test.png", "test.png", 1});
     insertPageBack(Page{50, PT_BLACK, "test.png", nullopt, 1});
     insertPageBack(Page{60, PT_BLACK, "test.png", nullopt, 1});
@@ -190,7 +205,8 @@ Book::Book(string root, string title, const unordered_map<string, json>& global_
 
 json Book::globalSettings(const string& name) const
 {
-    return mapAtDef(_globalSettings, name, {});
+    if (_globalSettings.contains(name)) return _globalSettings.at(name);
+    return {};
 }
 
 string Book::sourcesDir() const
@@ -243,7 +259,7 @@ bool Book::pageMergingMaskAvailable(const int id) const
     return std::filesystem::exists(pageMergingMaskPath(id));
 }
 
-bool Book::chooseMergingMask(const int id, const QImage& mask) const
+bool Book::chooseMergingMask(const int id, const QImage& mask)
 {
     return mask.save(pageMergingMaskPath(id).c_str());
 }
@@ -270,7 +286,9 @@ QPixmap Book::pageGeneratedMixPixmap(const int id) const
     const auto cg = imread(pageGeneratedCGPath(id), flag);
     cg.copyTo(bw, mask);
 
-    return QPixmap::fromImage({bw.data, bw.cols, bw.rows, bw.step, color ? QImage::Format::Format_BGR888 : QImage::Format_Grayscale8});
+    return QPixmap::fromImage({
+        bw.data, bw.cols, bw.rows, bw.step, color ? QImage::Format::Format_BGR888 : QImage::Format_Grayscale8
+    });
 }
 
 string Book::pageGeneratedBigsMaskPath(const int id) const
@@ -307,13 +325,13 @@ vector<int> Book::pageChosenBigs(const int id) const
     return res;
 }
 
-bool Book::choosePageBigs(const int id, const vector<PickerElement>& elements) const
+bool Book::choosePageBigs(const int id, const vector<PickerElement>& elements)
 {
     ofstream file(pageChosenBigsPath(id));
     file << calculateXXH3_64(pageGeneratedBigsMaskPath(id)) << '\n';
     for (int i = 0; i < elements.size(); ++i)
     {
-        if (elements[i].selected) file << i << ' ';
+        if (elements.at(i).selected) file << i << ' ';
     }
     return true; // !
 }
@@ -396,7 +414,7 @@ string Book::getPageSourceThumbnail(const int id) const
         return path;
     }
     const auto pix = QImage(pageSourceBWPath(id).c_str());
-    const QImage scaled = pix.scaled(200, 200, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    const auto scaled = pix.scaled(200, 200, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     scaled.save(path.c_str()); // !
     return path;
 }
@@ -410,5 +428,59 @@ void Book::applyChoiceToPage(const int id, const SelectionInfo& selection)
     {
         step->status = SST_ERROR;
         emit pageStatusChanged(id);
+    }
+}
+
+void to_json(json& j, const Page& page)
+{
+    j["id"] = page.id;
+    j["colorMode"] = page.colorMode;
+    j["source"] = page.source;
+    if (page.cgSource.has_value()) j["cgSource"] = page.cgSource.value();
+    j["subPage"] = page.subPage;
+    j["steps"] = str::to<vector<json>>(page.steps | stv::transform([](const auto& step) { return step->toJson(); }));
+}
+
+Page from_json(const json& j)
+{
+    Page res{
+        j.at("id"),
+        j.at("colorMode"),
+        j.at("source"),
+        atOpt<string>(j, "cgSource"),
+        j.at("subPage")
+    };
+    const vector<json> js = j.at("steps");
+    assert(js.size() == res.steps.size());
+    for (int i = 0; i < js.size(); ++i)
+    {
+        res.steps[i]->restoreJson(js[i]);
+    }
+    return res;
+}
+
+void to_json(json& j, const Book& book)
+{
+    j["title"] = book._title;
+    j["globalSettings"] = book._globalSettings;
+    vector<json> pages(book._ids.size());
+    for (int i = 0; i < book._ids.size(); ++i)
+    {
+        pages[i] = book._pages.at(book._ids[i]);
+    }
+    j["pages"] = pages;
+}
+
+void from_json(const json& j, Book& book)
+{
+    book._title = j.at("title");
+    book._globalSettings = j.at("globalSettings");
+    const vector<json>& pages = j.at("pages");
+    for (const auto& page : pages)
+    {
+        Page p = from_json(page);
+        auto id = p.id;
+        book._pages.emplace(id, std::move(p));
+        book._ids.emplace_back(id);
     }
 }

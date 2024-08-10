@@ -17,7 +17,7 @@ PickerElement PickerElement::fromStats(const int l, const int t, const int w, co
     };
 }
 
-vector<PickerElement> pickerElementsFromStats(const CCStats& st)
+vector<PickerElement> pickerElementsFromStats(const CCStats& st, const bool selected)
 {
     vector<PickerElement> res(st.stats.rows-1);
     for (int i = 1; i < st.stats.rows; ++i)
@@ -25,7 +25,7 @@ vector<PickerElement> pickerElementsFromStats(const CCStats& st)
         const auto* row = reinterpret_cast<const int*>(st.stats.ptr(i));
         const auto* cRow = reinterpret_cast<const int*>(st.centroids.ptr(i));
         res[i-1] = PickerElement::fromStats(
-            row[0], row[1], row[2], row[3], cRow[0], cRow[1], false);
+            row[0], row[1], row[2], row[3], cRow[0], cRow[1], selected);
     }
     return res;
 }

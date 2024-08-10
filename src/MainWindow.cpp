@@ -22,7 +22,7 @@ MainWindow::MainWindow(QWidget* parent) :
     connect(ui->pushButton, &QAbstractButton::clicked, [=]
     {
         int id = uniqueSelectedId();
-        if (id != -1) app().works().enqueue({id, false, false});
+        if (id != -1) app().works().enqueue({id, true, false});
     });
 }
 
@@ -34,5 +34,5 @@ MainWindow::~MainWindow()
 int MainWindow::uniqueSelectedId() const
 {
     auto idxs = ui->pageNav->list()->selectionModel()->selectedIndexes();
-    return idxs.size() == 1 ? app().book().ids()[idxs[0].row()] : -1;
+    return idxs.size() == 1 ? app().book().ids().at(idxs[0].row()) : -1;
 }

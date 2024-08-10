@@ -55,9 +55,7 @@ struct Page
     int subPage = 1;
     vector<unique_ptr<Step>> steps;
 
-    Page(int id, PageColorMode color_mode, string source, const optional<string>& cg_source, const int sub_page);
-
-    // ~Page();
+    Page(int id, PageColorMode color_mode, string source, const optional<string>& cg_source, int sub_page);
 
     Page(const Page& other) = delete;
 
@@ -86,17 +84,8 @@ struct Page
         return *this;
     }
 
-    //template <class Self> [[nodiscard]] auto nextStep(this Self& self)
-    // [[nodiscard]] auto enabledSteps() const
-    // {
-    //     return steps | std::views::filter([](const auto& step)
-    //     {
-    //         return step->enabled();
-    //     });
-    // }
     [[nodiscard]] const Step* nextStep() const;
     [[nodiscard]] Step* nextStep() { return const_cast<Step*>(static_cast<const Page*>(this)->nextStep()); }
-    // void setNextStepStatus(StepSataus status);
 
     [[nodiscard]] PreviewerSettings defaultPreviewerSettings() const;
     [[nodiscard]] PageStatus status() const;
@@ -104,7 +93,9 @@ struct Page
     [[nodiscard]] const MergingStep& mergingStep() const;
     [[nodiscard]] const CleaningStep& cleaningStep() const;
     [[nodiscard]] const FinalStep& finalStep() const;
-    // NLOHMANN_DEFINE_TYPE_INTRUSIVE(Page, id, colorMode, source, colorSource, subPage, status)
+
+    friend Page from_json(const json& j);
+    friend void to_json(json& j, const Page& page);
 };
 
 class Book final : public QObject
@@ -112,14 +103,13 @@ class Book final : public QObject
     Q_OBJECT
     string _root;
     string _title;
-    unordered_map<string, json> _globalSettings;
+    json _globalSettings;
     unordered_map<int, Page> _pages;
     vector<int> _ids;
 
 public:
-    Book(string root, string title,
-         const unordered_map<string, json>& global_settings) // !
-    ;
+    Book(string root, string title, json global_settings); // !
+    json globalSettings(const string& name) const;
 
     [[nodiscard]] auto& root() const { return _root; }
     void setRoot(const string& root) { _root = root; } // !
@@ -130,38 +120,38 @@ public:
     [[nodiscard]] auto& pageAt(int index) const { return page(_ids[index]); }
     [[nodiscard]] auto& ids() const { return _ids; }
     [[nodiscard]] auto& pages() const { return _pages; }
-    [[nodiscard]] json globalSettings(const string& name) const;
+    [[nodiscard]] auto& globalSettings() const { return _globalSettings; }
 
     // dirs
-    string sourcesDir() const;
-    string outputDir() const;
-    string generatedDir() const;
-    string sourcesThumbnailsdDir() const;
-    string mergingChoicesDir() const;
-    string cleaningChoicesDir() const;
+    [[nodiscard]] string sourcesDir() const;
+    [[nodiscard]] string outputDir() const;
+    [[nodiscard]] string generatedDir() const;
+    [[nodiscard]] string sourcesThumbnailsdDir() const;
+    [[nodiscard]] string mergingChoicesDir() const;
+    [[nodiscard]] string cleaningChoicesDir() const;
 
     // generated images
-    string pageSourceBWPath(int id) const;
-    string pageSourceCGPath(int id) const;
-    string pageGeneratedBWPath(int id) const;
-    string pageGeneratedCGPath(int id) const;
-    bool pageHasGenerated(int id) const;
+    [[nodiscard]] string pageSourceBWPath(int id) const;
+    [[nodiscard]] string pageSourceCGPath(int id) const;
+    [[nodiscard]] string pageGeneratedBWPath(int id) const;
+    [[nodiscard]] string pageGeneratedCGPath(int id) const;
+    [[nodiscard]] bool pageHasGenerated(int id) const;
 
     // merging mask
-    string pageMergingMaskPath(int id) const;
-    bool pageMergingMaskAvailable(int id) const;
-    bool chooseMergingMask(int id, const QImage& mask) const;
+    [[nodiscard]] string pageMergingMaskPath(int id) const;
+    [[nodiscard]] bool pageMergingMaskAvailable(int id) const;
+    bool chooseMergingMask(int id, const QImage& mask);
     // mix
-    bool pageMixedAvailable(int id) const;
-    QPixmap pageGeneratedMixPixmap(int id) const;
+    [[nodiscard]] bool pageMixedAvailable(int id) const;
+    [[nodiscard]] QPixmap pageGeneratedMixPixmap(int id) const;
 
     // cleaning generated
-    string pageGeneratedBigsMaskPath(int id) const;
+    [[nodiscard]] string pageGeneratedBigsMaskPath(int id) const;
     // chosen
-    string pageChosenBigsPath(int id) const;
-    bool pageChosenBigsAvailable(int id) const;
-    vector<int> pageChosenBigs(int id) const;
-    bool choosePageBigs(int id, const vector<PickerElement>& elements) const;
+    [[nodiscard]] string pageChosenBigsPath(int id) const;
+    [[nodiscard]] bool pageChosenBigsAvailable(int id) const;
+    [[nodiscard]] vector<int> pageChosenBigs(int id) const;
+    bool choosePageBigs(int id, const vector<PickerElement>& elements);
 
     // thumbnails
     string getPageSourceThumbnail(int id) const;
@@ -172,9 +162,15 @@ public:
     bool insertPage(int index, Page&& page);
     bool insertPageFront(Page&& page);
     bool insertPageBack(Page&& page);
+
+    [[nodiscard]] string savingPath() const;
+    void save();
 signals:
     void choiceAccepted(int pageId, bool accepted);
     void pageStatusChanged(int pageId);
+
+    friend void to_json(json& j, const Book& book);
+    friend void from_json(const json& j, Book& book);
 };
 
 #endif //BOOK_H

@@ -36,18 +36,28 @@ Task<StepSataus> MergingStep::run()
     const auto& book = app().book();
     if (book.pageMergingMaskAvailable(_pageId))
     {
-        const bool color = book.page(_pageId).colorMode == PT_COLOR;
-        const auto mask = imread(book.pageMergingMaskPath(_pageId), cv::IMREAD_GRAYSCALE);
-        auto bigs = imread(book.pageGeneratedBigsMaskPath(_pageId), cv::IMREAD_GRAYSCALE);
-        auto bw = imread(book.pageGeneratedBWPath(_pageId), cv::IMREAD_GRAYSCALE);
-        auto cg = imread(book.pageGeneratedCGPath(_pageId), color ? cv::IMREAD_COLOR : cv::IMREAD_GRAYSCALE);
-        bigs.setTo(0, mask);
-        bw.setTo(255, mask);
-        cg.setTo(color ? Scalar{255, 255, 255} : 255, ~mask);
-        imwrite(book.pageGeneratedBigsMaskPath(_pageId), bigs);
-        imwrite(book.pageGeneratedBWPath(_pageId), bw);
-        imwrite(book.pageGeneratedCGPath(_pageId), cg);
-        co_return SST_COMPLETE;
+        co_return co_await QtConcurrent::run([&book, this]
+        {
+            try
+            {
+                const bool color = book.page(_pageId).colorMode == PT_COLOR;
+                const auto mask = imread(book.pageMergingMaskPath(_pageId), cv::IMREAD_GRAYSCALE);
+                auto bigs = imread(book.pageGeneratedBigsMaskPath(_pageId), cv::IMREAD_GRAYSCALE);
+                auto bw = imread(book.pageGeneratedBWPath(_pageId), cv::IMREAD_GRAYSCALE);
+                auto cg = imread(book.pageGeneratedCGPath(_pageId), color ? cv::IMREAD_COLOR : cv::IMREAD_GRAYSCALE);
+                bigs.setTo(0, mask);
+                bw.setTo(255, mask);
+                cg.setTo(color ? Scalar{255, 255, 255} : 255, ~mask);
+                imwrite(book.pageGeneratedBigsMaskPath(_pageId), bigs);
+                imwrite(book.pageGeneratedBWPath(_pageId), bw);
+                imwrite(book.pageGeneratedCGPath(_pageId), cg);
+                return SST_COMPLETE;
+            }
+            catch (...)
+            {
+                return SST_ERROR;
+            }
+        });
     }
     co_return SST_WAITING;
 }

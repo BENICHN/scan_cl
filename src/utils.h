@@ -8,6 +8,7 @@
 #include "imports/stdimports.h"
 #include "imports/qtimports.h"
 #include "imports/qcoroimports.h"
+#include "imports/jsonimports.h"
 
 vector<uchar> exec(const char* cmd);
 
@@ -71,5 +72,13 @@ V* mapAtNull(const C<K,V,Args...>& m, K const& key)
 string calculateXXH3_64(const string& filePath);
 
 std::istream& ignoreUntil(std::istream& stream, char delimiter);
+
+template <typename T, typename K>
+optional<T> atOpt(const json& j, K&& key)
+{
+    const auto it = j.find(std::forward<K>(key));
+    if (it == j.end()) return nullopt;
+    return {it.value()};
+}
 
 #endif //UTILS_H

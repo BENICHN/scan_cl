@@ -35,3 +35,10 @@ Mat isIn(const Mat& labels, const std::vector<int>& elements)
     }
     return res;
 }
+
+Mat surroundWith(const Mat& src, const int t, const int l, const int b, const int r, const Scalar& value)
+{
+    Mat res(src.rows+t+b, src.cols+l+r, src.type(), value);
+    src.copyTo(res({l, t, src.cols, src.rows}));
+    return res;
+}

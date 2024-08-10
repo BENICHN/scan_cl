@@ -34,4 +34,6 @@ CCStats connectedComponentsWithStats(const Mat& src);
 
 Mat isIn(const Mat& labels, const std::vector<int>& elements);
 
+Mat surroundWith(const Mat& src, int t, int l, int b, int r, const Scalar& value);
+
 #endif //OPENCVIMPORTS_H

@@ -12,6 +12,7 @@ class FinalStep final : public Step
 public:
     explicit FinalStep(int pageId);
 
+    [[nodiscard]] QMargins margins(int w, int h) const;
     Task<StepSataus> run() override;
     [[nodiscard]] string name() const override { return "Finalisation"; }
 };

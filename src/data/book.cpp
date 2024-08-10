@@ -255,10 +255,17 @@ bool Book::pageMixedAvailable(const int id) const
 
 QPixmap Book::pageGeneratedMixPixmap(const int id) const
 {
-    const bool color = page(id).colorMode == PT_COLOR;
+    const auto& p = page(id);
+    const bool color = p.colorMode == PT_COLOR;
     const auto flag = color ? cv::IMREAD_COLOR : cv::IMREAD_GRAYSCALE;
 
-    const auto mask = imread(pageMergingMaskPath(id), cv::IMREAD_GRAYSCALE);
+    const auto& fStep = p.finalStep();
+    auto mask = imread(pageMergingMaskPath(id), cv::IMREAD_GRAYSCALE);
+    if (fStep.status == SST_COMPLETE)
+    {
+        const auto margins = fStep.margins(mask.cols, mask.rows);
+        mask = surroundWith(mask, margins.top(), margins.left(), margins.bottom(), margins.right(), 0);
+    }
     auto bw = imread(pageGeneratedBWPath(id), flag);
     const auto cg = imread(pageGeneratedCGPath(id), flag);
     cg.copyTo(bw, mask);

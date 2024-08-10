@@ -43,6 +43,7 @@ Task<StepSataus> CleaningStep::run()
         const auto mask = isIn(st.labels, sel);
         bw.setTo(255, mask);
         imwrite(book.pageGeneratedBWPath(_pageId), bw);
+        std::filesystem::remove(book.pageGeneratedBigsMaskPath(_pageId));
         co_return SST_COMPLETE;
     }
     co_return SST_WAITING;

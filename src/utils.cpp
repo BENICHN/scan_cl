@@ -25,21 +25,6 @@ vector<uchar> exec(const char* cmd)
     return result;
 }
 
-int sgn(const int x)
-{
-    return x == 0 ? 0 : x > 0 ? 1 : -1;
-}
-
-float ceilAbs(const float x)
-{
-    return x < 0 ? floor(x) : ceil(x);
-}
-
-int ceilDiv(const int x, const int b)
-{
-    return x / b + sgn(x % b);
-}
-
 int readIntBE(const uchar* bytes, const int offset)
 {
     return bytes[offset] << 24 |
@@ -208,4 +193,11 @@ string calculateXXH3_64(const string& filePath) {
 std::istream& ignoreUntil(std::istream& stream, const char delimiter)
 {
     return stream.ignore(std::numeric_limits<std::streamsize>::max(), delimiter);
+}
+
+QPainterPath roundRect(const QRect& rect, const float radius)
+{
+    QPainterPath res;
+    res.addRoundedRect(rect, radius, radius);
+    return res;
 }

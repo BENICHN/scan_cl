@@ -45,4 +45,10 @@ vector<PickerElement> pickerElementsFromStats(const CCStats& st, bool selected);
 
 using SelectionInfo = variant<QImage, vector<PickerElement>>;
 
+struct SelectionRectSettings
+{
+    SelectionType type = SR_NONE;
+    optional<SelectionInfo> selection;
+};
+
 #endif //SELECTIONRECTTYPES_H

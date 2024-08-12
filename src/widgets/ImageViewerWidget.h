@@ -41,6 +41,10 @@ class ImageViewerWidget final : public QWidget
     QPixmap _pixmap;
     QLabel* _imageLabel;
     SelectionRectWidget* _selectionRect;
+    optional<FilenameWithTimestamp> _ft;
+    CancelToken* _imageLoadingToken = nullptr;
+    QLabel* _loadingLabel;
+    SelectionRectSettings _srSettings;
 
 public:
     [[nodiscard]] const SelectionRectWidget* sr() const { return _selectionRect; }
@@ -51,8 +55,11 @@ private:
     float _zoomLevel;
 
     static int adjustPos(int L, int l, int x);
+    bool isCurrentFt(const string& filename, const stf::file_time_type& time);
+    bool isCurrentFt(const FilenameWithTimestamp& ft);
 
 public:
+    // using ImageSource = variant<string, QPixmap>;
     static constexpr int WHEEL_OFFSET = 40;
     static constexpr float WHEEL_FACTOR = 1.1;
     static constexpr float WHEEL_FACTOR_LOG = logf(WHEEL_FACTOR);
@@ -61,21 +68,49 @@ public:
     void offset(const QPoint& v) const;
     void zoomToLevel(float level, const QPointF& p);
 
+    Task<> setPixmap(const string& filename);
+    Task<> setPixmap(const auto& factory);
     void setPixmap(const QPixmap& pixmap);
-    void setPixmapAndRect(const QPixmap& pixmap);
-    void setPixmapAndRect(const QPixmap& pixmap, const QImage& image);
-    void setPixmapAndPicker(const QPixmap& pixmap, const vector<PickerElement>& elements);
 
     void setSRDisabled();
     void setSRRect();
     void setSRRect(const QImage& sel);
+    void setSRRect(const optional<SelectionInfo>& sel);
     void setSRPicker(const vector<PickerElement>& elements);
 
+    [[nodiscard]] bool isLoading() const;
+
 protected:
+    void setSR();
+    Task<> setPixmapInternal(const auto& factory);
+    void setPixmapInternal(const QPixmap& pixmap);
     void updateSelectionRect() const;
     void computeZoomLevels();
+    void computeZoomLevels(const QSize& imgSize);
     bool event(QEvent* e) override;
     void resizeEvent(QResizeEvent* e) override;
 };
+
+Task<> ImageViewerWidget::setPixmap(const auto& factory)
+{
+    _ft = nullopt;
+    co_await setPixmapInternal(factory);
+}
+
+Task<> ImageViewerWidget::setPixmapInternal(const auto& factory)
+{
+    setPixmapInternal({});
+    _loadingLabel->show();
+    if (_imageLoadingToken) _imageLoadingToken->cancel();
+    CancelToken tk;
+    _imageLoadingToken = &tk;
+    const auto img = co_await QtConcurrent::run([=]
+    {
+        return factory();
+    });
+    if (tk.isCanceled()) co_return;
+    _imageLoadingToken = nullptr;
+    setPixmapInternal(img);
+}
 
 #endif //IMAGEVIEWERWIDGET_H

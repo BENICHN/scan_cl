@@ -15,6 +15,8 @@
 #include <vector>
 #include <map>
 #include <unordered_map>
+#include <chrono>
+#include <filesystem>
 
 using std::cout;
 using std::make_shared;
@@ -41,7 +43,25 @@ using std::ofstream;
 using std::ostringstream;
 using std::runtime_error;
 
+namespace stf = std::filesystem;
 namespace str = std::ranges;
 namespace stv = std::ranges::views;
+
+struct FilenameWithTimestamp
+{
+    string filename;
+    stf::file_time_type lastWriteTime;
+
+    friend bool operator==(const FilenameWithTimestamp& lhs, const FilenameWithTimestamp& rhs)
+    {
+        return lhs.filename == rhs.filename
+            && lhs.lastWriteTime == rhs.lastWriteTime;
+    }
+
+    friend bool operator!=(const FilenameWithTimestamp& lhs, const FilenameWithTimestamp& rhs)
+    {
+        return !(lhs == rhs);
+    }
+};
 
 #endif //STDIMPORTS_H

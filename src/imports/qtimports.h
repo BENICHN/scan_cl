@@ -7,5 +7,6 @@
 
 #include <QtGui>
 #include <QWidget>
+#include <QStyledItemDelegate>
 
 #endif //QTIMPORTS_H

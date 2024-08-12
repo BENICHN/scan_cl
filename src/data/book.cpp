@@ -177,6 +177,26 @@ bool Book::insertPageBack(Page&& page)
     return insertPage(_pages.size(), std::move(page));
 }
 
+void Book::cleanPage(const int id)
+{
+    stf::remove(pageGeneratedBWPath(id));
+    stf::remove(pageGeneratedCGPath(id));
+    stf::remove(pageGeneratedBigsMaskPath(id));
+    stf::remove(pageMergingMaskPath(id));
+    stf::remove(pageChosenBigsPath(id));
+}
+
+void Book::resetPage(const int id)
+{
+    cleanPage(id);
+    const auto& p = page(id);
+    for (const auto& step : p.steps)
+    {
+        step->status = SST_NOTRUN;
+    }
+    emit pageStatusChanged(id);
+}
+
 string Book::savingPath() const
 {
     return _root+"/book.json";
@@ -189,18 +209,20 @@ void Book::save()
     file << j.dump(2);
 }
 
-Book::Book(string root, string title, json global_settings): _root(std::move(root)),
-                                                             _title(std::move(title)),
-                                                             _globalSettings(std::move(global_settings))
+void Book::loadFromRoot(const string& root)
 {
-    insertPageBack(Page{10, PT_COLOR, "test.png", "test.png", 1});
-    insertPageBack(Page{20, PT_GRAY, "test.png", "test.png", 1});
-    insertPageBack(Page{30, PT_GRAY, "test2-1.png", "test2-2.png", 1});
-    insertPageBack(Page{40, PT_GRAY, "test.png", "test.png", 1});
-    insertPageBack(Page{50, PT_BLACK, "test.png", nullopt, 1});
-    insertPageBack(Page{60, PT_BLACK, "test.png", nullopt, 1});
-    insertPageBack(Page{70, PT_BLACK, "test.png", nullopt, 1});
-    insertPageBack(Page{80, PT_BLACK, "test.png", nullopt, 1});
+    ifstream file(root+"/book.json");
+    const auto j = json::parse(file);
+    _root = root;
+    loadFromJson(j);
+}
+
+Book::Book()
+{
+    connect(this, &Book::pageStatusChanged, [=]
+    {
+       save();
+    });
 }
 
 json Book::globalSettings(const string& name) const
@@ -246,7 +268,7 @@ string Book::pageSourceBWPath(const int id) const
 
 bool Book::pageHasGenerated(const int id) const
 {
-    return std::filesystem::exists(pageGeneratedBWPath(id)); // !
+    return stf::exists(pageGeneratedBWPath(id)); // !
 }
 
 string Book::pageMergingMaskPath(const int id) const
@@ -256,7 +278,7 @@ string Book::pageMergingMaskPath(const int id) const
 
 bool Book::pageMergingMaskAvailable(const int id) const
 {
-    return std::filesystem::exists(pageMergingMaskPath(id));
+    return stf::exists(pageMergingMaskPath(id));
 }
 
 bool Book::chooseMergingMask(const int id, const QImage& mask)
@@ -304,7 +326,7 @@ string Book::pageChosenBigsPath(const int id) const
 bool Book::pageChosenBigsAvailable(const int id) const
 {
     const auto path = pageChosenBigsPath(id);
-    if (!std::filesystem::exists(path) || !pageHasGenerated(id)) return false;
+    if (!stf::exists(path) || !pageHasGenerated(id)) return false;
     ifstream file(path);
     string hash;
     if (!(file >> hash)) return false;
@@ -379,7 +401,7 @@ string Book::pageGeneratedCGPath(const int id) const
 //     case PS_CROPPING:
 //         p->status = p->colorMode == PT_BLACK
 //                         ? PST_WAITING
-//                         : std::filesystem::exists(mergingChoicesDir() + to_string(id))
+//                         : stf::exists(mergingChoicesDir() + to_string(id))
 //                         ? PST_READY
 //                         : PST_WAITING;
 //         break;
@@ -409,7 +431,7 @@ string Book::getPageSourceThumbnail(const int id) const
 {
     const Page& p = page(id);
     string path = sourcesThumbnailsdDir() + p.source + ".png";
-    if (std::filesystem::exists(path)) // !
+    if (stf::exists(path)) // !
     {
         return path;
     }
@@ -471,16 +493,17 @@ void to_json(json& j, const Book& book)
     j["pages"] = pages;
 }
 
-void from_json(const json& j, Book& book)
+void Book::loadFromJson(const json& j)
 {
-    book._title = j.at("title");
-    book._globalSettings = j.at("globalSettings");
+    _title = j.at("title");
+    _globalSettings = j.at("globalSettings");
     const vector<json>& pages = j.at("pages");
     for (const auto& page : pages)
     {
         Page p = from_json(page);
         auto id = p.id;
-        book._pages.emplace(id, std::move(p));
-        book._ids.emplace_back(id);
+        _pages.emplace(id, std::move(p));
+        _ids.emplace_back(id);
     }
+    // ! signals
 }

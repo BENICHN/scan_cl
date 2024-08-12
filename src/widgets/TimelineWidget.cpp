@@ -47,16 +47,18 @@ void TimelineWidget::paintEvent(QPaintEvent* event)
     if (sz == 0) return;
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
-    const int w = width();
-    const int h = height();
-    painter.setClipRegion(roundedRectInner(0, 0, w, h, RADIUS));
-    painter.setBrush(Qt::white);
+    painter.translate(8, 8);
+    const int w = width()-16;
+    const int h = height()-16;
+    const auto rr = roundRect({0, 0, w, h}, RADIUS);
+    painter.setClipPath(rr);
     const float xStep = w / sz;
     const int cy = h / 2;
     int i = 0;
     for (const auto& step : steps)
     {
         if (!step->enabled()) continue;
+        painter.save();
         // make poly
         QPolygon poly;
         if (i == 0)
@@ -88,6 +90,8 @@ void TimelineWidget::paintEvent(QPaintEvent* event)
                 << QPoint{x - ARROW_RADIUS, 0};
         }
         // fill polygons
+        auto font = painter.font();
+        font.setPixelSize(16);
         painter.setPen(Qt::NoPen);
         switch (step->status)
         {
@@ -95,29 +99,37 @@ void TimelineWidget::paintEvent(QPaintEvent* event)
             painter.setBrush(Qt::white);
             break;
         case SST_WORKING:
-            painter.setBrush(Color::orange);
+            painter.setBrush(Qt::white);
+            font.setBold(true);
             break;
         case SST_WAITING:
-            painter.setBrush(Color::sunFlower);
+            painter.setBrush(Color::br3);
             break;
         case SST_COMPLETE:
-            painter.setBrush(Color::emerald);
+            painter.setBrush(Color::br4);
             break;
         case SST_ERROR:
-            painter.setBrush(Color::alizarin);
+            painter.setBrush(Color::br_red);
             break;
         }
         painter.drawPolygon(poly);
         // draw lines
         painter.setPen(Qt::SolidLine);
-        auto font = painter.font();
-        font.setPointSize(16);
+        if (i > 0)
+        {
+            painter.save();
+            painter.setPen({Color::br5, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin});
+            painter.drawPolyline(poly.data(), 3);
+            painter.restore();
+        }
         painter.setFont(font);
-        if (i > 0) { painter.drawPolyline(poly.data(), 3); }
         // draw text
         const int tx = (i + .5f) * xStep;
         drawText(painter, tx, cy, Qt::AlignCenter, step->name().c_str());
+        painter.restore();
         if (step->enabled()) ++i;
     }
-    QWidget::paintEvent(event);
+    painter.setClipping(false);
+    painter.setPen({Color::br5, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin});
+    painter.drawPath(rr);
 }

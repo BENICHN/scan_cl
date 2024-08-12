@@ -14,4 +14,13 @@
 
 using QCoro::Task;
 
+class CancelToken
+{
+    bool _isCanceled = false;
+
+public:
+    [[nodiscard]] bool isCanceled() const { return _isCanceled; }
+    void cancel() { _isCanceled = true; }
+};
+
 #endif //OTHERIMPORTS_H

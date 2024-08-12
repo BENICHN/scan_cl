@@ -28,6 +28,14 @@ namespace Color
     constexpr QColor silver = {189, 195, 199};
     constexpr QColor concrete = {149, 165, 166};
     constexpr QColor asbestos = {127, 140, 141};
+
+    constexpr QColor br1 = {237, 224, 212};
+    constexpr QColor br2 = {230, 204, 178};
+    constexpr QColor br3 = {221, 184, 146};
+    constexpr QColor br4 = {176, 137, 104};
+    constexpr QColor br5 = {127, 85, 57};
+    constexpr QColor br6 = {156, 102, 68};
+    constexpr QColor br_red = {111, 29, 27};
 }
 
 #endif //COLORS_H

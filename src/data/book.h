@@ -108,7 +108,7 @@ class Book final : public QObject
     vector<int> _ids;
 
 public:
-    Book(string root, string title, json global_settings); // !
+    Book(); // !
     json globalSettings(const string& name) const;
 
     [[nodiscard]] auto& root() const { return _root; }
@@ -162,15 +162,20 @@ public:
     bool insertPage(int index, Page&& page);
     bool insertPageFront(Page&& page);
     bool insertPageBack(Page&& page);
+    void cleanPage(int id);
+    void resetPage(int id);
 
+    // saving
     [[nodiscard]] string savingPath() const;
     void save();
+    void loadFromRoot(const string& root);
 signals:
     void choiceAccepted(int pageId, bool accepted);
     void pageStatusChanged(int pageId);
 
     friend void to_json(json& j, const Book& book);
-    friend void from_json(const json& j, Book& book);
+private:
+    void loadFromJson(const json& j);
 };
 
 #endif //BOOK_H

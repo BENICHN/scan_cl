@@ -25,48 +25,9 @@ bool GlobalEventFilter::eventFilter(QObject* obj, QEvent* e)
     return QObject::eventFilter(obj, e);
 }
 
-App::App(int& argc, char** argv): QApplication(argc, argv), _book({
-                                      "/home/benichn/prog/cpp/scan/testBook",
-                                      "Test",
-                                      {
-                                          {
-                                              "Recadrage",
-                                              {
-                                                  {"flip", true},
-                                                  {"maxBlockDist", 60},
-                                                  {"minConnectedBlockSize", 250},
-                                                  {"minBlockSize", 10},
-                                                  {"cropOverflow", 50},
-                                                  {"whiteThreshold", 234},
-                                                  {"smallImageBlocksArea", 20},
-                                                  {"whiteColorThreshold", 240},
-                                                  {"colorGamma", 0.5},
-                                                  {"maxBigCCColorMean", 15000},
-                                                  {"blurSize", QSize(110, 12)},
-                                                  {"maxBlurredCCArea", 4000}
-                                              }
-                                          },
-                                          {
-                                              "Finalisation", {
-                                                  {"dpi", 600},
-                                                  {"finalWidthCm", 15.0f},
-                                                  {"finalHeightCm", 23.3f},
-                                                  {"leftMarginCm", 1.7f},
-                                                  {"rightMarginCm", 1.7f},
-                                                  {"topMarginCm", 1.4f},
-                                                  {"bottomMarginCm", 1.4f},
-                                                  {"forcedLeftCm", -1.0f},
-                                                  {"forcedRightCm", -1.0f},
-                                                  {"forcedTopCm", -1.0f},
-                                                  {"forcedBottomCm", -1.0f},
-                                                  {"headerHeightCm", 2.75f},
-                                                  {"alignmentH", "l"},
-                                                  {"alignmentV", "t"},
-                                              }
-                                          },
-                                      }
-                                  })
+App::App(int& argc, char** argv): QApplication(argc, argv)
 {
+    Q_INIT_RESOURCE(resources);
     installEventFilter(&_eventFilter);
     QImageReader::setAllocationLimit(512);
 }

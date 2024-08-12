@@ -6,5 +6,18 @@
         <file>pics/it-ng.svg</file>
         <file>pics/it-nc.svg</file>
         <file>pics/it-g+c.svg</file>
+        <file>pics/loader.gif</file>
+        <file>icons/add.png</file>
+        <file>icons/import.png</file>
+        <file>icons/pauseAll.png</file>
+        <file>icons/pause.png</file>
+        <file>icons/play.png</file>
+        <file>icons/scan.png</file>
+        <file>icons/stopAll.png</file>
+        <file>icons/stop.png</file>
+        <file>icons/next.png</file>
+        <file>icons/reset.png</file>
+        <file>icons/preview.png</file>
+        <file>icons/delete.png</file>
     </qresource>
 </RCC>

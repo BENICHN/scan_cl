@@ -40,11 +40,20 @@
      <property name="styleSheet">
       <string notr="true"/>
      </property>
+     <property name="dragEnabled">
+      <bool>false</bool>
+     </property>
+     <property name="dragDropMode">
+      <enum>QAbstractItemView::DragDrop</enum>
+     </property>
      <property name="selectionMode">
       <enum>QAbstractItemView::ExtendedSelection</enum>
      </property>
+     <property name="resizeMode">
+      <enum>QListView::Adjust</enum>
+     </property>
      <property name="spacing">
-      <number>20</number>
+      <number>0</number>
      </property>
      <property name="viewMode">
       <enum>QListView::IconMode</enum>

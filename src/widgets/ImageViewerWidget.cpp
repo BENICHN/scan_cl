@@ -4,6 +4,8 @@
 
 #include "ImageViewerWidget.h"
 
+#include <QVBoxLayout>
+
 void ImageViewerWidget::MoveMouseAction::onMove()
 {
     _sr->offset(lastDiff());
@@ -35,11 +37,29 @@ int ImageViewerWidget::adjustPos(int L, int l, int x)
     return l < L ? (L - l) / 2 : max(L - l, min(x, 0));
 }
 
+bool ImageViewerWidget::isCurrentFt(const string& filename, const stf::file_time_type& time)
+{
+    return _ft.has_value() && _ft.value().filename == filename && _ft.value().lastWriteTime == time;
+}
+
+bool ImageViewerWidget::isCurrentFt(const FilenameWithTimestamp& ft)
+{
+    return isCurrentFt(ft.filename, ft.lastWriteTime);
+}
+
 ImageViewerWidget::ImageViewerWidget(QWidget* parent) : QWidget(parent),
                                                         _imageLabel(new QLabel(this)),
                                                         _selectionRect(new SelectionRectWidget(this))
 {
     _imageLabel->setScaledContents(true);
+    auto* l = new QGridLayout(this);
+    _loadingLabel = new QLabel(this);
+    auto* mov = new QMovie(":/pics/loader.gif", {}, this);
+    mov->start();
+    _loadingLabel->setMovie(mov);
+    _loadingLabel->setMaximumSize(200,200);
+    _loadingLabel->hide();
+    l->addWidget(_loadingLabel);
 }
 
 void ImageViewerWidget::offset(const QPoint& v) const
@@ -62,60 +82,97 @@ void ImageViewerWidget::zoomToLevel(const float level, const QPointF& p)
     updateSelectionRect();
 }
 
+Task<> ImageViewerWidget::setPixmap(const string& filename)
+{
+    const auto lwt = stf::last_write_time(filename);
+    if (isCurrentFt(filename, lwt)) co_return;
+    _ft = {
+        filename,
+        lwt
+    };
+     co_await setPixmapInternal([=]{ return QPixmap(filename.c_str()); });
+}
+
 void ImageViewerWidget::setPixmap(const QPixmap& pixmap)
 {
-    _pixmap = pixmap;
-    _selectionRect->resetDisabled();
-    _imageLabel->setPixmap(_pixmap);
-    computeZoomLevels();
-    zoomToLevel(0, QPointF());
-}
-
-void ImageViewerWidget::setPixmapAndRect(const QPixmap& pixmap)
-{
-    _pixmap = pixmap;
-    _selectionRect->resetRect(_pixmap.size());
-    _imageLabel->setPixmap(_pixmap);
-    computeZoomLevels();
-    zoomToLevel(0, QPointF());
-}
-
-void ImageViewerWidget::setPixmapAndRect(const QPixmap& pixmap, const QImage& image)
-{
-    _pixmap = pixmap;
-    _selectionRect->resetRect(image);
-    _imageLabel->setPixmap(_pixmap);
-    computeZoomLevels();
-    zoomToLevel(0, QPointF());
-}
-
-void ImageViewerWidget::setPixmapAndPicker(const QPixmap& pixmap, const vector<PickerElement>& elements)
-{
-    _pixmap = pixmap;
-    _selectionRect->resetPicker(_pixmap.size(), elements);
-    _imageLabel->setPixmap(_pixmap);
-    computeZoomLevels();
-    zoomToLevel(0, QPointF());
+    _ft = nullopt;
+    setPixmapInternal(pixmap);
 }
 
 void ImageViewerWidget::setSRDisabled()
 {
-    _selectionRect->resetDisabled();
+    _srSettings = {
+        SR_NONE,
+        nullopt
+    };
+    if (!isLoading()) setSR();
 }
 
 void ImageViewerWidget::setSRRect()
 {
-    _selectionRect->resetRect(_pixmap.size());
+    _srSettings = {
+        SR_RECT,
+        nullopt
+    };
+    if (!isLoading()) setSR();
 }
 
 void ImageViewerWidget::setSRRect(const QImage& sel)
 {
-    _selectionRect->resetRect(sel);
+    _srSettings = {
+        SR_RECT,
+        sel
+    };
+    if (!isLoading()) setSR();
+}
+
+void ImageViewerWidget::setSRRect(const optional<SelectionInfo>& sel)
+{
+    _srSettings = {
+        SR_RECT,
+        sel
+    };
 }
 
 void ImageViewerWidget::setSRPicker(const vector<PickerElement>& elements)
 {
-    _selectionRect->resetPicker(_pixmap.size(), elements);
+    _srSettings = {
+        SR_PICKER,
+        elements
+    };
+    if (!isLoading()) setSR();
+}
+
+bool ImageViewerWidget::isLoading() const
+{
+    return _loadingLabel->isVisible();
+}
+
+void ImageViewerWidget::setSR()
+{
+    switch (_srSettings.type)
+    {
+    case SR_NONE:
+        _selectionRect->resetDisabled();
+        break;
+    case SR_RECT:
+        if (_srSettings.selection.has_value()) _selectionRect->resetRect(get<QImage>(_srSettings.selection.value()));
+        else _selectionRect->resetRect(_pixmap.size());
+        break;
+    case SR_PICKER:
+        _selectionRect->resetPicker(_pixmap.size(), get<vector<PickerElement>>(_srSettings.selection.value()));
+        break;
+    }
+}
+
+void ImageViewerWidget::setPixmapInternal(const QPixmap& pixmap)
+{
+    _loadingLabel->hide();
+    _pixmap = pixmap;
+    _imageLabel->setPixmap(_pixmap);
+    setSR();
+    computeZoomLevels();
+    zoomToLevel(_minZoomLevel, QPointF());
 }
 
 void ImageViewerWidget::updateSelectionRect() const
@@ -125,7 +182,10 @@ void ImageViewerWidget::updateSelectionRect() const
 
 void ImageViewerWidget::computeZoomLevels()
 {
-    const QSize imgSize = _pixmap.size();
+    computeZoomLevels(_pixmap.size());
+}
+void ImageViewerWidget::computeZoomLevels(const QSize& imgSize)
+{
     const QSize size = this->size();
     const float minZoomFactor = min(
         static_cast<float>(size.width()) / imgSize.width(),

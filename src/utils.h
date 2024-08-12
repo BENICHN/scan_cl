@@ -12,10 +12,20 @@
 
 vector<uchar> exec(const char* cmd);
 
-int sgn(int x);
+constexpr int sgn(const int x)
+{
+    return x == 0 ? 0 : x > 0 ? 1 : -1;
+}
 
-float ceilAbs(float x);
-int ceilDiv(int x, int b);
+constexpr float ceilAbs(const float x)
+{
+    return x < 0 ? floorf(x) : ceilf(x);
+}
+
+constexpr int ceilDiv(const int x, const int b)
+{
+    return x / b + sgn(x % b);
+}
 
 int readIntBE(const uchar* bytes, int offset);
 int readIntLE(const uchar* bytes, int offset);
@@ -42,28 +52,29 @@ QRect mapRectTo(const QWidget* src, const QWidget* target, const QRect& rect);
 QPointF unitVector(float angle);
 QPoint radialVector(float angle, float radius);
 
-void drawArrow(QPainter* painter, const QPoint& pos, float angle, float radius, float amplitude = M_PI/4);
+void drawArrow(QPainter* painter, const QPoint& pos, float angle, float radius, float amplitude = M_PI / 4);
 
-void drawText(QPainter & painter, qreal x, qreal y, Qt::Alignment flags,
-              const QString & text, QRectF * boundingRect = 0);
+void drawText(QPainter& painter, qreal x, qreal y, Qt::Alignment flags,
+              const QString& text, QRectF* boundingRect = nullptr);
 
-void drawText(QPainter & painter, const QPointF & point, Qt::Alignment flags,
-              const QString & text, QRectF * boundingRect = {});
+void drawText(QPainter& painter, const QPointF& point, Qt::Alignment flags,
+              const QString& text, QRectF* boundingRect = nullptr);
 
 Task<> delay(int ms);
 
 template <template<class,class,class...> class C, typename K, typename V, typename... Args>
-V mapAtDef(const C<K,V,Args...>& m, K const& key, const V & defval)
+V mapAtDef(const C<K, V, Args...>& m, K const& key, const V& defval)
 {
-    typename C<K,V,Args...>::const_iterator it = m.find( key );
+    typename C<K, V, Args...>::const_iterator it = m.find(key);
     if (it == m.end())
         return defval;
     return it->second;
 }
+
 template <template<class,class,class...> class C, typename K, typename V, typename... Args>
-V* mapAtNull(const C<K,V,Args...>& m, K const& key)
+V* mapAtNull(const C<K, V, Args...>& m, K const& key)
 {
-    typename C<K,V,Args...>::const_iterator it = m.find( key );
+    typename C<K, V, Args...>::const_iterator it = m.find(key);
     if (it == m.end())
         return nullptr;
     return &it->second;
@@ -80,5 +91,28 @@ optional<T> atOpt(const json& j, K&& key)
     if (it == j.end()) return nullopt;
     return {it.value()};
 }
+
+constexpr QRect fitIn(const QRect& src, const QRect& dest)
+{
+    const int w = src.width();
+    const int h = src.height();
+    const int W = dest.width();
+    const int H = dest.height();
+
+    const float ws = static_cast<float>(W) / w;
+    const float hs = static_cast<float>(H) / h;
+    if (ws < hs)
+    {
+        const int nh = h * ws;
+        return {dest.left(), dest.top() + (H - nh) / 2, W, nh};
+    }
+    else
+    {
+        const int nw = w * hs;
+        return {dest.left() + (W - nw) / 2, dest.top(), nw, H};
+    }
+}
+
+QPainterPath roundRect(const QRect& rect, float radius);
 
 #endif //UTILS_H

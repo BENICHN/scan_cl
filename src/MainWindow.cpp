@@ -19,10 +19,32 @@ MainWindow::MainWindow(QWidget* parent) :
         ui->previewer->setPageId(newId);
         ui->timeline->setPageId(newId);
     });
-    connect(ui->pushButton, &QAbstractButton::clicked, [=]
+    connect(ui->actionD_marrer_la_selection, &QAction::triggered, [=]
     {
-        int id = uniqueSelectedId();
-        if (id != -1) app().works().enqueue({id, true, false});
+        const auto& ids = app().book().ids();
+        auto& works = app().works();
+        for (const auto& idx : ui->pageNav->list()->selectionModel()->selectedIndexes())
+        {
+            works.enqueue({ ids.at(idx.row()), true, false });
+        }
+    });
+    connect(ui->actionD_marrer_une_tape_sur_la_s_lection, &QAction::triggered, [=]
+    {
+        const auto& ids = app().book().ids();
+        auto& works = app().works();
+        for (const auto& idx : ui->pageNav->list()->selectionModel()->selectedIndexes())
+        {
+            works.enqueue({ ids.at(idx.row()), false, false });
+        }
+    });
+    connect(ui->actionR_initialier_la_s_lection, &QAction::triggered, [=]
+    {
+        auto& book = app().book();
+        const auto& ids = book.ids();
+        for (const auto& idx : ui->pageNav->list()->selectionModel()->selectedIndexes())
+        {
+            book.resetPage(ids.at(idx.row()));
+        }
     });
 }
 

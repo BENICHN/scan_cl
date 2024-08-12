@@ -101,10 +101,10 @@ void PreviewerWidget::updateImageAndRect(const bool updateImage, const bool upda
                 switch (settings.origin.value())
                 {
                 case ImageOrigin::SOURCE:
-                    ui->iv->setPixmap(QPixmap(book.pageSourceBWPath(_pageId).c_str()));
+                    ui->iv->setPixmap(book.pageSourceBWPath(_pageId));
                     break;
                 case ImageOrigin::GENERATED:
-                    ui->iv->setPixmap(QPixmap(book.pageGeneratedBWPath(_pageId).c_str()));
+                    ui->iv->setPixmap(book.pageGeneratedBWPath(_pageId));
                     break;
                 }
                 break;
@@ -112,15 +112,15 @@ void PreviewerWidget::updateImageAndRect(const bool updateImage, const bool upda
                 switch (settings.origin.value())
                 {
                 case ImageOrigin::SOURCE:
-                    ui->iv->setPixmap(QPixmap(book.pageSourceCGPath(_pageId).c_str()));
+                    ui->iv->setPixmap(book.pageSourceCGPath(_pageId));
                     break;
                 case ImageOrigin::GENERATED:
-                    ui->iv->setPixmap(QPixmap(book.pageGeneratedCGPath(_pageId).c_str()));
+                    ui->iv->setPixmap(book.pageGeneratedCGPath(_pageId));
                     break;
                 }
                 break;
             case PWC_MIX:
-                ui->iv->setPixmap(book.pageGeneratedMixPixmap(_pageId));
+                ui->iv->setPixmap([=] { return app().book().pageGeneratedMixPixmap(_pageId); });
                 break;
             }
         }
@@ -132,8 +132,7 @@ void PreviewerWidget::updateImageAndRect(const bool updateImage, const bool upda
                 ui->iv->setSRDisabled();
                 break;
             case SR_RECT:
-                if (settings.selection.has_value()) ui->iv->setSRRect(get<QImage>(settings.selection.value()));
-                else ui->iv->setSRRect();
+                ui->iv->setSRRect(settings.selection);
                 break;
             case SR_PICKER:
                 ui->iv->setSRPicker(get<vector<PickerElement>>(settings.selection.value()));

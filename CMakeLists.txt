@@ -81,6 +81,8 @@ add_executable(scan
         src/widgets/PreviewerSelectorTypes.h
         src/imports/opencvimports.h
         src/imports/opencvimports.cpp
+        src/components/models/PagesDelegate.cpp
+        src/components/models/PagesDelegate.h
 )
 target_link_libraries(scan
         Qt::Core

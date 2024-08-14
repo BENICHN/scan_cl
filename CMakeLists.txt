@@ -93,6 +93,9 @@ add_executable(scan
         src/components/props/PropsEditorTypes.h
         src/Scanner.cpp
         src/Scanner.h
+        src/components/ScanWidget.cpp
+        src/components/ScanWidget.h
+        src/components/ScanWidget.ui
 )
 target_link_libraries(scan
         Qt::Core

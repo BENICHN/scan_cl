@@ -44,6 +44,8 @@ using std::ifstream;
 using std::ofstream;
 using std::istream;
 using std::ostream;
+using std::basic_ostream;
+using std::basic_istream;
 using std::ostringstream;
 using std::runtime_error;
 using std::in_place_index;

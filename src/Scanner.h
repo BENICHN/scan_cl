@@ -15,20 +15,15 @@
 template <typename T=void>
 class SANEOpt
 {
-    bool _ok;
-
-    union
-    {
-        T _value;
-        SANE_Status _status;
-    };
+    using data_type = variant<T, SANE_Status>;
+    data_type _data;
 
     SANEOpt() = default;
 
 public:
     operator bool() const
     {
-        return _ok;
+        return isOk();
     }
 
     operator SANE_Status() const
@@ -37,45 +32,41 @@ public:
     }
 
     template <class Self>
-    auto&& value(this Self self) const
+    auto&& value(this Self self)
     {
-        if (!self._ok) throw runtime_error("attempting to access value of a non ok SANEOpt");
-        return self._value;
+        if (!self.isOk()) throw runtime_error("attempting to access value of a non ok SANEOpt");
+        return get<0>(self._data);
     }
 
     [[nodiscard]] SANE_Status status() const
     {
-        return _ok ? SANE_STATUS_GOOD : _status;
+        return isOk() ? SANE_STATUS_GOOD : get<1>(_data);
     }
 
     [[nodiscard]] bool isOk() const
     {
-        return _ok;
+        return _data.index() == 0;
     }
 
     SANEOpt(const T& value)
     {
-        _ok = true;
-        _value = value;
+        _data = data_type(in_place_index<0>, value);
     }
 
     SANEOpt(const SANE_Status status)
     {
-        _ok = false;
-        _status = status;
+        _data = data_type(in_place_index<1>, status);
     }
 
     SANEOpt(const T& value, const SANE_Status status)
     {
         if (status == SANE_STATUS_GOOD)
         {
-            _ok = true;
-            _value = value;
+            _data = data_type(in_place_index<0>, value);
         }
         else
         {
-            _ok = false;
-            _status = status;
+            _data = data_type(in_place_index<1>, status);
         }
     }
 };
@@ -116,6 +107,7 @@ public:
 };
 
 using SANE_Info = SANE_Int;
+using SANEStream = basic_ostream<SANE_Byte>;
 
 class Scanner final : public QObject
 {
@@ -129,14 +121,20 @@ class Scanner final : public QObject
     vector<const SANE_Option_Descriptor*> _currentOptions;
     SANE_Parameters _currentParameters;
     bool _scanning = false;
-    ostream<SANE_Byte> _stream;
+    SANEStream _stream;
 
 public:
-    [[nodiscard]] optional<SANE_Int> version() const { return _init ? nullopt : _version; }
+    [[nodiscard]] optional<SANE_Int> version() const
+    {
+        if (!_init) return nullopt;
+        return _version;
+    }
+
     [[nodiscard]] bool deviceSelected() const { return _currentDevice; }
     [[nodiscard]] const span<const SANE_Device>& devices() const { return _devices; }
     [[nodiscard]] const SANE_Device* currentDevice() const { return _currentDevice; }
     [[nodiscard]] const vector<const SANE_Option_Descriptor*>& currentOptions() const { return _currentOptions; }
+    [[nodiscard]] const SANEStream& stream() const { return _stream; }
 
     [[nodiscard]] const SANE_Parameters* currentParameters() const
     {
@@ -155,10 +153,10 @@ public:
     Task<SANEOpt<>> setCurrentDevice(const SANE_Device* dev);
     Task<> exit();
 
-    Task<SANEOpt<const ostream<SANE_Byte>&>> startScan();
+    Task<SANEOpt<>> startScan();
     Task<SANEOpt<>> stopScan();
 
-    constexpr int BUFFER_SIZE = 1048576;
+    static constexpr int BUFFER_SIZE = 1048576;
 
 private:
     Task<SANEOpt<>> updateParameters();

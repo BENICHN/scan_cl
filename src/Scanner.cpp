@@ -204,7 +204,7 @@ Task<SANEOpt<SANE_Info>> Scanner::setOptionsValueAt(const int i, const json& val
     case SANE_TYPE_BOOL:
         {
             SANE_Bool v = value.get<bool>();
-            const auto sta = co_await QtConcurrent::run([this, &]
+            const auto sta = co_await QtConcurrent::run([&, this]
             {
                 return sane_control_option(_currentDeviceHandle, i, SANE_ACTION_SET_VALUE, &v, &inf);
             });
@@ -213,7 +213,7 @@ Task<SANEOpt<SANE_Info>> Scanner::setOptionsValueAt(const int i, const json& val
     case SANE_TYPE_INT:
         {
             SANE_Int v = value.get<int>();
-            const auto sta = co_await QtConcurrent::run([this, &]
+            const auto sta = co_await QtConcurrent::run([&, this]
             {
                 return sane_control_option(_currentDeviceHandle, i, SANE_ACTION_SET_VALUE, &v, &inf);
             });
@@ -222,7 +222,7 @@ Task<SANEOpt<SANE_Info>> Scanner::setOptionsValueAt(const int i, const json& val
     case SANE_TYPE_FIXED:
         {
             SANE_Fixed v = SANE_FIX(value.get<double>());
-            const auto sta = co_await QtConcurrent::run([this, &]
+            const auto sta = co_await QtConcurrent::run([&, this]
             {
                 return sane_control_option(_currentDeviceHandle, i, SANE_ACTION_SET_VALUE, &v, &inf);
             });
@@ -231,7 +231,7 @@ Task<SANEOpt<SANE_Info>> Scanner::setOptionsValueAt(const int i, const json& val
     case SANE_TYPE_STRING:
         {
             SANE_String v = value.get<string>().data();
-            const auto sta = co_await QtConcurrent::run([this, &]
+            const auto sta = co_await QtConcurrent::run([&, this]
             {
                 return sane_control_option(_currentDeviceHandle, i, SANE_ACTION_SET_VALUE, &v, &inf);
             });
@@ -239,7 +239,7 @@ Task<SANEOpt<SANE_Info>> Scanner::setOptionsValueAt(const int i, const json& val
         }
     default:
         {
-            const auto sta = co_await QtConcurrent::run([this, &]
+            const auto sta = co_await QtConcurrent::run([&, this]
             {
                 return sane_control_option(_currentDeviceHandle, i, SANE_ACTION_SET_VALUE, nullptr, &inf);
             });
@@ -269,7 +269,7 @@ Task<SANEOpt<SANE_Info>> Scanner::setOptionsValue(const SANE_Option_Descriptor* 
     co_return co_await setOptionsValueAt(i, value);
 }
 
-Task<SANEOpt<const ostream&>> Scanner::startScan()
+Task<SANEOpt<>> Scanner::startScan()
 {
     if (!_init || !deviceSelected()) co_return SANE_STATUS_UNSUPPORTED;
     if (_scanning) co_return SANE_STATUS_DEVICE_BUSY; // ! necessaire ?
@@ -279,10 +279,10 @@ Task<SANEOpt<const ostream&>> Scanner::startScan()
         return sane_start(_currentDeviceHandle);
     });
     co_await updateParameters(); // ! pas checked
-    _stream = {};
+    _stream.clear();
     readLoop();
 
-    co_return {_stream, sta};
+    co_return sta;
 }
 
 Task<SANEOpt<>> Scanner::stopScan()

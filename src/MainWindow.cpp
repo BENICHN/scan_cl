@@ -8,6 +8,7 @@
 #include "ui_MainWindow.h"
 
 #include "app.h"
+#include "components/ScanWidget.h"
 
 MainWindow::MainWindow(QWidget* parent) :
     QWidget(parent), ui(new Ui::MainWindow)
@@ -46,6 +47,10 @@ MainWindow::MainWindow(QWidget* parent) :
         {
             book.resetPage(ids.at(idx.row()));
         }
+    });
+    connect(ui->actionAcquisition, &QAction::triggered, [=]
+    {
+        (new ScanWidget)->showMaximized();
     });
 }
 

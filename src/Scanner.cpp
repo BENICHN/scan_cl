@@ -74,7 +74,8 @@ Task<> Scanner::exit()
     co_await stopScan();
     co_await closeCurrentDevice();
     _init = false;
-    co_await QtConcurrent::run([]{
+    co_await QtConcurrent::run([]
+    {
         sane_exit();
     });
 }
@@ -300,14 +301,18 @@ Task<> Scanner::readLoop()
     int len;
     while (true)
     {
-        const auto sta = sane_read(_currentDeviceHandle, buffer, BUFFER_SIZE, &len); // ! blocking
-        if (!sta)
+        do
         {
-            _scanning = false;
-            emit pageScanned();
-            co_return;
+            const auto sta = sane_read(_currentDeviceHandle, buffer, BUFFER_SIZE, &len); // ! blocking
+            if (!sta)
+            {
+                _scanning = false;
+                emit pageScanned();
+                co_return;
+            }
+            _stream.write(buffer, len);
         }
-        _stream.write(buffer, len);
+        while (len == BUFFER_SIZE);
         co_await delay(200);
     }
 }

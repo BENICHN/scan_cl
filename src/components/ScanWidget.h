@@ -20,6 +20,8 @@ public:
     ~ScanWidget() override;
 
 private:
+    void updateDevices();
+    void updateOptions();
     Ui::ScanWidget *ui;
 };
 

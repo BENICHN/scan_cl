@@ -1,17 +1,18 @@
 //
-// Created by benichn on 28/07/24.
+// Created by benichn on 14/08/24.
 //
 
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QWidget>
+#include <QMainWindow>
+#include "imports/qcoroimports.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-class MainWindow final : public QWidget {
+class MainWindow : public QMainWindow {
 Q_OBJECT
 
 public:
@@ -19,8 +20,9 @@ public:
     ~MainWindow() override;
 
 private:
+    Task<> initScanner();
+    Task<> searchDevices();
     Ui::MainWindow *ui;
-    [[nodiscard]] int uniqueSelectedId() const;
 };
 
 

@@ -107,7 +107,7 @@ public:
 };
 
 using SANE_Info = SANE_Int;
-using SANEStream = basic_ostream<SANE_Byte>;
+using SANEStream = basic_ospanstream<SANE_Byte>;
 
 class Scanner final : public QObject
 {
@@ -115,23 +115,27 @@ class Scanner final : public QObject
 
     bool _init = false;
     SANE_Int _version = -1;
-    span<const SANE_Device> _devices;
+    span<const SANE_Device*> _devices;
     const SANE_Device* _currentDevice = nullptr;
     SANE_Handle _currentDeviceHandle = nullptr;
     vector<const SANE_Option_Descriptor*> _currentOptions;
     SANE_Parameters _currentParameters;
     bool _scanning = false;
+    vector<SANE_Byte> _buffer;
     SANEStream _stream;
 
 public:
+    explicit Scanner(QObject* parent = nullptr);
+
     [[nodiscard]] optional<SANE_Int> version() const
     {
         if (!_init) return nullopt;
         return _version;
     }
 
+    [[nodiscard]] bool initialized() const { return _init; }
     [[nodiscard]] bool deviceSelected() const { return _currentDevice; }
-    [[nodiscard]] const span<const SANE_Device>& devices() const { return _devices; }
+    [[nodiscard]] const span<const SANE_Device*>& devices() const { return _devices; }
     [[nodiscard]] const SANE_Device* currentDevice() const { return _currentDevice; }
     [[nodiscard]] const vector<const SANE_Option_Descriptor*>& currentOptions() const { return _currentOptions; }
     [[nodiscard]] const SANEStream& stream() const { return _stream; }
@@ -151,10 +155,12 @@ public:
     Task<SANEOpt<>> init();
     Task<SANEOpt<>> updateDevices();
     Task<SANEOpt<>> setCurrentDevice(const SANE_Device* dev);
+    Task<SANEOpt<>> setCurrentDevice(int i);
     Task<> exit();
 
     Task<SANEOpt<>> startScan();
     Task<SANEOpt<>> stopScan();
+    void clearPageBuffer();
 
     static constexpr int BUFFER_SIZE = 1048576;
 
@@ -166,6 +172,10 @@ private:
 
 signals:
     void pageScanned();
+    void devicesFound(const span<const SANE_Device*>& newValue);
+    void currentDeviceChanged(const SANE_Device* newValue);
+    void currentOptionsChanged(const vector<const SANE_Option_Descriptor*>& newValue);
+    void currentParametersChanged(const SANE_Parameters* newValue);
 };
 
 

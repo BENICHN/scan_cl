@@ -1,311 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MainWindow</class>
- <widget class="QWidget" name="MainWindow">
+ <widget class="QMainWindow" name="MainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>953</width>
-    <height>653</height>
+    <width>902</width>
+    <height>696</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <property name="spacing">
-    <number>0</number>
+  <widget class="ProcessFragment" name="centralwidget"/>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>902</width>
+     <height>22</height>
+    </rect>
    </property>
-   <property name="leftMargin">
-    <number>0</number>
-   </property>
-   <property name="topMargin">
-    <number>0</number>
-   </property>
-   <property name="rightMargin">
-    <number>0</number>
-   </property>
-   <property name="bottomMargin">
-    <number>0</number>
-   </property>
-   <item>
-    <widget class="QSplitter" name="splitter">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <widget class="QWidget" name="widget_2" native="true">
-      <property name="maximumSize">
-       <size>
-        <width>192</width>
-        <height>16777215</height>
-       </size>
-      </property>
-      <property name="baseSize">
-       <size>
-        <width>192</width>
-        <height>0</height>
-       </size>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <property name="spacing">
-        <number>0</number>
-       </property>
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QToolBar" name="toolBar_3">
-         <property name="windowTitle">
-          <string>toolBar</string>
-         </property>
-         <addaction name="actionNouvelle_page"/>
-         <addaction name="actionImporter_SEQ"/>
-         <addaction name="actionAcquisition"/>
-         <addaction name="actionSupprimer_la_s_lection"/>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolBar" name="toolBar_2">
-         <property name="windowTitle">
-          <string>toolBar</string>
-         </property>
-         <addaction name="actionD_marrer_la_selection"/>
-         <addaction name="actionD_marrer_une_tape_sur_la_s_lection"/>
-         <addaction name="actionMettre_en_pause_la_s_lection"/>
-         <addaction name="actionArr_ter_la_s_lection"/>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolBar" name="toolBar">
-         <property name="windowTitle">
-          <string>toolBar</string>
-         </property>
-         <addaction name="actionR_initialier_la_s_lection"/>
-         <addaction name="actionPr_visualiser_l_tape_suivante_de_la_s_lection"/>
-         <addaction name="actionArr_ter_toutes_les_pages"/>
-         <addaction name="actionMettre_en_pause_toutes_les_pages"/>
-        </widget>
-       </item>
-       <item>
-        <widget class="PageNavWidget" name="pageNav" native="true"/>
-       </item>
-      </layout>
-     </widget>
-     <widget class="PropsEditor" name="propsEditor" native="true">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>384</width>
-        <height>16777215</height>
-       </size>
-      </property>
-      <property name="baseSize">
-       <size>
-        <width>384</width>
-        <height>0</height>
-       </size>
-      </property>
-     </widget>
-     <widget class="QWidget" name="widget_2" native="true">
-      <layout class="QGridLayout" name="gridLayout">
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <property name="spacing">
-        <number>0</number>
-       </property>
-       <item row="1" column="0" colspan="2">
-        <widget class="PreviewerWidget" name="previewer" native="true"/>
-       </item>
-       <item row="0" column="0" colspan="2">
-        <layout class="QVBoxLayout" name="verticalLayout">
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="TimelineWidget" name="timeline" native="true">
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </widget>
-    </widget>
-   </item>
-  </layout>
-  <action name="actionNouvelle_page">
-   <property name="icon">
-    <iconset resource="../../../../scan/resources.qrc">
-     <normaloff>:/icons/add.png</normaloff>:/icons/add.png</iconset>
-   </property>
-   <property name="text">
-    <string>Nouvelle page</string>
-   </property>
-  </action>
-  <action name="actionImporter_SEQ">
-   <property name="icon">
-    <iconset resource="../../../../scan/resources.qrc">
-     <normaloff>:/icons/import.png</normaloff>:/icons/import.png</iconset>
-   </property>
-   <property name="text">
-    <string>Importer SEQ</string>
-   </property>
-  </action>
-  <action name="actionAcquisition">
-   <property name="icon">
-    <iconset resource="../../../../scan/resources.qrc">
-     <normaloff>:/icons/scan.png</normaloff>:/icons/scan.png</iconset>
-   </property>
-   <property name="text">
-    <string>Acquisition</string>
-   </property>
-  </action>
-  <action name="actionD_marrer_la_selection">
-   <property name="icon">
-    <iconset resource="../../../../scan/resources.qrc">
-     <normaloff>:/icons/play.png</normaloff>:/icons/play.png</iconset>
-   </property>
-   <property name="text">
-    <string>Démarrer la sélection</string>
-   </property>
-  </action>
-  <action name="actionD_marrer_une_tape_sur_la_s_lection">
-   <property name="icon">
-    <iconset resource="../../../../scan/resources.qrc">
-     <normaloff>:/icons/next.png</normaloff>:/icons/next.png</iconset>
-   </property>
-   <property name="text">
-    <string>Démarrer une étape sur la sélection</string>
-   </property>
-  </action>
-  <action name="actionMettre_en_pause_la_s_lection">
-   <property name="icon">
-    <iconset resource="../../../../scan/resources.qrc">
-     <normaloff>:/icons/pause.png</normaloff>:/icons/pause.png</iconset>
-   </property>
-   <property name="text">
-    <string>Mettre en pause la sélection</string>
-   </property>
-  </action>
-  <action name="actionArr_ter_la_s_lection">
-   <property name="icon">
-    <iconset resource="../../../../scan/resources.qrc">
-     <normaloff>:/icons/stop.png</normaloff>:/icons/stop.png</iconset>
-   </property>
-   <property name="text">
-    <string>Arrêter la sélection</string>
-   </property>
-  </action>
-  <action name="actionArr_ter_toutes_les_pages">
-   <property name="icon">
-    <iconset resource="../../../../scan/resources.qrc">
-     <normaloff>:/icons/pauseAll.png</normaloff>:/icons/pauseAll.png</iconset>
-   </property>
-   <property name="text">
-    <string>Arrêter toutes les pages</string>
-   </property>
-  </action>
-  <action name="actionMettre_en_pause_toutes_les_pages">
-   <property name="icon">
-    <iconset resource="../../../../scan/resources.qrc">
-     <normaloff>:/icons/stopAll.png</normaloff>:/icons/stopAll.png</iconset>
-   </property>
-   <property name="text">
-    <string>Mettre en pause toutes les pages</string>
-   </property>
-  </action>
-  <action name="actionR_initialier_la_s_lection">
-   <property name="icon">
-    <iconset resource="../../../../scan/resources.qrc">
-     <normaloff>:/icons/reset.png</normaloff>:/icons/reset.png</iconset>
-   </property>
-   <property name="text">
-    <string>Réinitialier la sélection</string>
-   </property>
-  </action>
-  <action name="actionPr_visualiser_l_tape_suivante_de_la_s_lection">
-   <property name="icon">
-    <iconset resource="../../../../scan/resources.qrc">
-     <normaloff>:/icons/preview.png</normaloff>:/icons/preview.png</iconset>
-   </property>
-   <property name="text">
-    <string>Prévisualiser l'étape suivante de la sélection</string>
-   </property>
-  </action>
-  <action name="actionSupprimer_la_s_lection">
-   <property name="icon">
-    <iconset resource="../../../../scan/resources.qrc">
-     <normaloff>:/icons/delete.png</normaloff>:/icons/delete.png</iconset>
-   </property>
-   <property name="text">
-    <string>Supprimer la sélection</string>
-   </property>
-  </action>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>PageNavWidget</class>
+   <class>ProcessFragment</class>
    <extends>QWidget</extends>
-   <header>../../../src/components/PageNavWidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>TimelineWidget</class>
-   <extends>QWidget</extends>
-   <header>../../../src/widgets/TimelineWidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>PreviewerWidget</class>
-   <extends>QWidget</extends>
-   <header>../../../src/components/PreviewerWidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>PropsEditor</class>
-   <extends>QWidget</extends>
-   <header>../../../src/components/props/PropsEditor.h</header>
+   <header>../../../src/ProcessFragment.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="../../../../scan/resources.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

@@ -48,9 +48,9 @@ add_executable(scan
         src/components/PageNavWidget.ui
         src/components/models/PagesModel.cpp
         src/components/models/PagesModel.h
-        src/MainWindow.cpp
-        src/MainWindow.h
-        src/MainWindow.ui
+        src/ProcessFragment.cpp
+        src/ProcessFragment.h
+        src/ProcessFragment.ui
         src/app.h
         src/app.cpp
         src/components/PreviewerWidget.cpp
@@ -96,6 +96,9 @@ add_executable(scan
         src/components/ScanWidget.cpp
         src/components/ScanWidget.h
         src/components/ScanWidget.ui
+        src/MainWindow.cpp
+        src/MainWindow.h
+        src/MainWindow.ui
 )
 target_link_libraries(scan
         Qt::Core

@@ -19,6 +19,7 @@
 #include <filesystem>
 #include <generator>
 #include <span>
+#include <spanstream>
 
 using std::cout;
 using std::make_shared;
@@ -42,15 +43,24 @@ using std::unordered_map;
 using std::to_string;
 using std::ifstream;
 using std::ofstream;
+using std::basic_ifstream;
+using std::basic_ofstream;
 using std::istream;
 using std::ostream;
-using std::basic_ostream;
 using std::basic_istream;
+using std::basic_ostream;
+using std::istringstream;
 using std::ostringstream;
+using std::basic_istringstream;
+using std::basic_ostringstream;
 using std::runtime_error;
 using std::in_place_index;
 using std::generator;
 using std::span;
+using std::ispanstream;
+using std::ospanstream;
+using std::basic_ispanstream;
+using std::basic_ospanstream;
 
 namespace stf = std::filesystem;
 namespace str = std::ranges;

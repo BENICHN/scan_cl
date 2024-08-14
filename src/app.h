@@ -5,7 +5,9 @@
 #ifndef APP_H
 #define APP_H
 #include <QApplication>
+
 #include "MainWindow.h"
+#include "Scanner.h"
 #include "works.h"
 #include "data/book.h"
 
@@ -24,6 +26,7 @@ class App final : public QApplication
     Q_OBJECT
     Book _book;
     Works _works;
+    Scanner _scanner;
     GlobalEventFilter _eventFilter;
     MainWindow _mainWindow;
 
@@ -35,6 +38,7 @@ public:
     [[nodiscard]] MainWindow& mainWindow() { return _mainWindow; }
     [[nodiscard]] GlobalEventFilter& globalEventFilter() { return _eventFilter; }
     [[nodiscard]] Works& works() { return _works; }
+    [[nodiscard]] Scanner& scanner() { return _scanner; }
 };
 
 inline App& app() { return *App::instance(); }

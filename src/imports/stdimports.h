@@ -17,6 +17,8 @@
 #include <unordered_map>
 #include <chrono>
 #include <filesystem>
+#include <generator>
+#include <span>
 
 using std::cout;
 using std::make_shared;
@@ -40,8 +42,13 @@ using std::unordered_map;
 using std::to_string;
 using std::ifstream;
 using std::ofstream;
+using std::istream;
+using std::ostream;
 using std::ostringstream;
 using std::runtime_error;
+using std::in_place_index;
+using std::generator;
+using std::span;
 
 namespace stf = std::filesystem;
 namespace str = std::ranges;

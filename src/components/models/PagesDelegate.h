@@ -8,6 +8,7 @@
 #include "../../imports/qtimports.h"
 
 class PagesDelegate final : public QStyledItemDelegate {
+    Q_OBJECT
 public:
     PagesDelegate(QObject* parent);
 

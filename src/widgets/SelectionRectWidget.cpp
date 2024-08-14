@@ -72,7 +72,7 @@ unique_ptr<MouseAction> SelectionRectWidget::MouseHandler::createMouseAction(QMo
     switch (e->button())
     {
     case Qt::LeftButton:
-        return make_unique<SelectMouseAction>(SelectMouseAction(_sr));
+        return make_unique<SelectMouseAction>(_sr);
     default:
         return nullptr;
     }

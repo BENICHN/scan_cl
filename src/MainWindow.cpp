@@ -18,6 +18,7 @@ MainWindow::MainWindow(QWidget* parent) :
         const int newId = uniqueSelectedId();
         ui->previewer->setPageId(newId);
         ui->timeline->setPageId(newId);
+        ui->propsEditor->setSource(PropsSource(in_place_index<PTY_PAGE>, newId));
     });
     connect(ui->actionD_marrer_la_selection, &QAction::triggered, [=]
     {

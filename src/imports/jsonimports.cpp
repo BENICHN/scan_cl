@@ -20,3 +20,28 @@ void from_json(const json& j, QSize& v)
         j.at(1)
     };
 }
+
+json qVariantToJson(const QVariant& v)
+{
+    switch (v.typeId())
+    {
+    case QVariant::Bool:
+        return v.toBool();
+    case QVariant::Int:
+        return v.toInt();
+    case QVariant::UInt:
+        return v.toUInt();
+    case QVariant::LongLong:
+        return v.toLongLong();
+    case QVariant::ULongLong:
+        return v.toULongLong();
+    case QVariant::Double:
+        return v.toDouble();
+    case QVariant::Char:
+        return static_cast<const char*>(v.data());
+    case QVariant::String:
+        return v.toString().toStdString();
+    default:
+        return nullptr;
+    }
+}

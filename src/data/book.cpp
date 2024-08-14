@@ -26,10 +26,10 @@ Page::Page(const int id, PageColorMode color_mode, string source, const optional
                                 cgSource(cg_source),
                                 subPage(sub_page)
 {
-    steps.emplace_back(make_unique<CroppingStep>(CroppingStep(id)));
-    steps.emplace_back(make_unique<MergingStep>(MergingStep(id))); // !
-    steps.emplace_back(make_unique<CleaningStep>(CleaningStep(id)));
-    steps.emplace_back(make_unique<FinalStep>(FinalStep(id)));
+    steps.emplace_back(make_unique<CroppingStep>(id));
+    steps.emplace_back(make_unique<MergingStep>(id));
+    steps.emplace_back(make_unique<CleaningStep>(id));
+    steps.emplace_back(make_unique<FinalStep>(id));
 }
 
 // Page::~Page()

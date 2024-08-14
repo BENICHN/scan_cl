@@ -35,7 +35,7 @@ struct Step
     json settings;
 
 protected:
-    const int _pageId;
+    int _pageId;
     [[nodiscard]] const Page& page() const;
     explicit Step(int pageId);
 

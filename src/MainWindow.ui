@@ -64,7 +64,7 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="QToolBar" name="toolBar">
+        <widget class="QToolBar" name="toolBar_3">
          <property name="windowTitle">
           <string>toolBar</string>
          </property>
@@ -75,7 +75,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolBar" name="toolBar">
+        <widget class="QToolBar" name="toolBar_2">
          <property name="windowTitle">
           <string>toolBar</string>
          </property>
@@ -101,22 +101,22 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="widget_4" native="true">
+     <widget class="PropsEditor" name="propsEditor" native="true">
       <property name="minimumSize">
        <size>
-        <width>256</width>
+        <width>0</width>
         <height>0</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
-        <width>256</width>
+        <width>384</width>
         <height>16777215</height>
        </size>
       </property>
       <property name="baseSize">
        <size>
-        <width>256</width>
+        <width>384</width>
         <height>0</height>
        </size>
       </property>
@@ -295,6 +295,12 @@
    <class>PreviewerWidget</class>
    <extends>QWidget</extends>
    <header>../../../src/components/PreviewerWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PropsEditor</class>
+   <extends>QWidget</extends>
+   <header>../../../src/components/props/PropsEditor.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

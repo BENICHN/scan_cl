@@ -1,6 +1,8 @@
 #include <QMainWindow>
 
 #include "app.h"
+#include <sane/sane.h>
+#include <sane/saneopts.h>
 
 int main(int argc, char* argv[])
 {

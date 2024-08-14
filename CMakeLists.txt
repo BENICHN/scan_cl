@@ -83,6 +83,16 @@ add_executable(scan
         src/imports/opencvimports.cpp
         src/components/models/PagesDelegate.cpp
         src/components/models/PagesDelegate.h
+        src/components/props/PropsEditor.cpp
+        src/components/props/PropsEditor.h
+        src/components/props/PropsEditor.ui
+        src/data/StaticJsonModel.cpp
+        src/data/StaticJsonModel.h
+        src/data/PageSettingsModel.cpp
+        src/data/PageSettingsModel.h
+        src/components/props/PropsEditorTypes.h
+        src/Scanner.cpp
+        src/Scanner.h
 )
 target_link_libraries(scan
         Qt::Core
@@ -92,4 +102,5 @@ target_link_libraries(scan
         nlohmann_json::nlohmann_json
         xxhash
         ${OpenCV_LIBS}
+        sane
 )

@@ -26,6 +26,7 @@ public:
     explicit TimelineWidget(QWidget* parent = nullptr);
     ~TimelineWidget() override;
 
+    [[nodiscard]] int pageId() const { return _pageId; }
     void setPageId(int id);
 
 private:

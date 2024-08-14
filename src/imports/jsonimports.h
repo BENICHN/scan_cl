@@ -5,11 +5,15 @@
 #ifndef JSONIMPORTS_H
 #define JSONIMPORTS_H
 
+#include <QVariant>
 #include <nlohmann/json.hpp>
 
 class QSize;
 
 using nlohmann::json;
+using nlohmann::ordered_json;
+using nlohmann::json_pointer;
+using json_value_t = nlohmann::detail::value_t;
 
 void to_json(json& j, const QSize& v);
 void from_json(const json& j, QSize& v);
@@ -42,5 +46,7 @@ namespace std
         }
     }
 }
+
+json qVariantToJson(const QVariant& v);
 
 #endif //JSONIMPORTS_H

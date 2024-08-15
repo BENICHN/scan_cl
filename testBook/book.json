@@ -1,0 +1,268 @@
+{
+  "globalSettings": {
+    "Finalisation": {
+      "alignmentH": "l",
+      "alignmentV": "t",
+      "bottomMarginCm": 1.399999976158142,
+      "dpi": 600,
+      "finalHeightCm": 23.299999237060547,
+      "finalWidthCm": 15.0,
+      "forcedBottomCm": -1.0,
+      "forcedLeftCm": -1.0,
+      "forcedRightCm": -1.0,
+      "forcedTopCm": -1.0,
+      "headerHeightCm": 2.75,
+      "leftMarginCm": 1.7000000476837158,
+      "rightMarginCm": 1.7000000476837158,
+      "topMarginCm": 1.399999976158142
+    },
+    "Recadrage": {
+      "blurSize": [
+        110,
+        12
+      ],
+      "colorGamma": 0.5,
+      "cropOverflow": 50,
+      "flip": true,
+      "maxBigCCColorMean": 15000,
+      "maxBlockDist": 60,
+      "maxBlurredCCArea": 4000,
+      "minBlockSize": 10,
+      "minConnectedBlockSize": 250,
+      "smallImageBlocksArea": 20,
+      "whiteColorThreshold": 240,
+      "whiteThreshold": 234
+    }
+  },
+  "pages": [
+    {
+      "cgSource": "test.png",
+      "colorMode": "PT_COLOR",
+      "id": 10,
+      "source": "test.png",
+      "steps": [
+        {
+          "name": "Recadrage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Assemblage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Nettoyage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Finalisation",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        }
+      ],
+      "subPage": 1
+    },
+    {
+      "cgSource": "test.png",
+      "colorMode": "PT_GRAY",
+      "id": 20,
+      "source": "test.png",
+      "steps": [
+        {
+          "name": "Recadrage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Assemblage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Nettoyage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Finalisation",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        }
+      ],
+      "subPage": 1
+    },
+    {
+      "cgSource": "test2-2.png",
+      "colorMode": "PT_GRAY",
+      "id": 30,
+      "source": "test2-1.png",
+      "steps": [
+        {
+          "name": "Recadrage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Assemblage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Nettoyage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Finalisation",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        }
+      ],
+      "subPage": 1
+    },
+    {
+      "cgSource": "test.png",
+      "colorMode": "PT_GRAY",
+      "id": 40,
+      "source": "test.png",
+      "steps": [
+        {
+          "name": "Recadrage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Assemblage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Nettoyage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Finalisation",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        }
+      ],
+      "subPage": 1
+    },
+    {
+      "colorMode": "PT_BLACK",
+      "id": 50,
+      "source": "test.png",
+      "steps": [
+        {
+          "name": "Recadrage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Assemblage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Nettoyage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Finalisation",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        }
+      ],
+      "subPage": 1
+    },
+    {
+      "colorMode": "PT_BLACK",
+      "id": 60,
+      "source": "test.png",
+      "steps": [
+        {
+          "name": "Recadrage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Assemblage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Nettoyage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Finalisation",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        }
+      ],
+      "subPage": 1
+    },
+    {
+      "colorMode": "PT_BLACK",
+      "id": 70,
+      "source": "test.png",
+      "steps": [
+        {
+          "name": "Recadrage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Assemblage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Nettoyage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Finalisation",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        }
+      ],
+      "subPage": 1
+    },
+    {
+      "colorMode": "PT_BLACK",
+      "id": 80,
+      "source": "test.png",
+      "steps": [
+        {
+          "name": "Recadrage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Assemblage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Nettoyage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Finalisation",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        }
+      ],
+      "subPage": 1
+    }
+  ],
+  "title": "Test"
+}

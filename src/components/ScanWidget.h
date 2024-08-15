@@ -6,6 +6,7 @@
 #define SCANWIDGET_H
 
 #include <QWidget>
+#include "../imports/qcoroimports.h"
 
 
 QT_BEGIN_NAMESPACE
@@ -21,7 +22,10 @@ public:
 
 private:
     void updateDevices();
-    void updateOptions();
+    // Task<> updateOptions();
+    void updatePixmap();
+    Task<> updatePixmapLoop();
+    void addCropLines(QPixmap& pix);
     Ui::ScanWidget *ui;
 };
 

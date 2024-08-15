@@ -48,5 +48,8 @@ namespace std
 }
 
 json qVariantToJson(const QVariant& v);
+QVariant jsonToQVariant(const json& j);
+
+std::string dumpValue(const json& j);
 
 #endif //JSONIMPORTS_H

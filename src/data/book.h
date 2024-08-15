@@ -156,6 +156,10 @@ public:
     // thumbnails
     string getPageSourceThumbnail(int id) const;
 
+    // scan
+    string scanDir() const;
+    string getNewScanPath() const;
+
     // mutations
     void applyChoiceToPage(int id, const SelectionInfo& selection);
     Task<StepSataus> runPage(int id);

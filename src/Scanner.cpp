@@ -4,6 +4,7 @@
 
 #include "Scanner.h"
 
+#include "app.h"
 #include "utils.h"
 
 Task<SANEOpt<>> Scanner::init()
@@ -129,6 +130,16 @@ Scanner::Scanner(QObject* parent) : QObject(parent), _stream({})
 {
 }
 
+QPixmap Scanner::generateCurrentPixmap() const
+{
+    if (!deviceSelected()) return {};
+    if (_currentImage.sizeInBytes() > 0)
+    {
+        return QPixmap::fromImage(_currentImage);
+    }
+    return {_currentParameters.pixels_per_line, _currentParameters.lines};
+}
+
 Task<SANEOpt<json>> Scanner::getOptionValueAt(int i) const
 {
     if (!_init || !deviceSelected() || i < 0 || i >= _currentOptions.size()) co_return SANE_STATUS_UNSUPPORTED;
@@ -193,6 +204,7 @@ Task<SANEOpt<json>> Scanner::getOptionsValues() const
     json res = {};
     for (int i = 0; i < _currentOptions.size(); ++i)
     {
+        if (i == 0) continue; // skip "number of properties"
         const auto desc = _currentOptions[i];
         switch (desc->type)
         {
@@ -225,7 +237,7 @@ Task<SANEOpt<SANE_Info>> Scanner::setOptionsValueAt(const int i, const json& val
             {
                 return sane_control_option(_currentDeviceHandle, i, SANE_ACTION_SET_VALUE, &v, &inf);
             });
-            if (!sta) co_return sta;
+            if (sta != SANE_STATUS_GOOD) co_return sta;
         }
     case SANE_TYPE_INT:
         {
@@ -234,7 +246,7 @@ Task<SANEOpt<SANE_Info>> Scanner::setOptionsValueAt(const int i, const json& val
             {
                 return sane_control_option(_currentDeviceHandle, i, SANE_ACTION_SET_VALUE, &v, &inf);
             });
-            if (!sta) co_return sta;
+            if (sta != SANE_STATUS_GOOD) co_return sta;
         }
     case SANE_TYPE_FIXED:
         {
@@ -243,7 +255,7 @@ Task<SANEOpt<SANE_Info>> Scanner::setOptionsValueAt(const int i, const json& val
             {
                 return sane_control_option(_currentDeviceHandle, i, SANE_ACTION_SET_VALUE, &v, &inf);
             });
-            if (!sta) co_return sta;
+            if (sta != SANE_STATUS_GOOD) co_return sta;
         }
     case SANE_TYPE_STRING:
         {
@@ -252,7 +264,7 @@ Task<SANEOpt<SANE_Info>> Scanner::setOptionsValueAt(const int i, const json& val
             {
                 return sane_control_option(_currentDeviceHandle, i, SANE_ACTION_SET_VALUE, &v, &inf);
             });
-            if (!sta) co_return sta;
+            if (sta != SANE_STATUS_GOOD) co_return sta;
         }
     default:
         {
@@ -260,7 +272,7 @@ Task<SANEOpt<SANE_Info>> Scanner::setOptionsValueAt(const int i, const json& val
             {
                 return sane_control_option(_currentDeviceHandle, i, SANE_ACTION_SET_VALUE, nullptr, &inf);
             });
-            if (!sta) co_return sta;
+            if (sta != SANE_STATUS_GOOD) co_return sta;
         }
     }
     auto st = SANE_STATUS_GOOD;
@@ -286,6 +298,38 @@ Task<SANEOpt<SANE_Info>> Scanner::setOptionsValue(const SANE_Option_Descriptor* 
     co_return co_await setOptionsValueAt(i, value);
 }
 
+QImage::Format toQFormat(const SANE_Parameters& params)
+{
+    switch (params.format)
+    {
+    case SANE_FRAME_GRAY:
+        switch (params.depth)
+        {
+        case 1:
+            return QImage::Format_Mono;
+        case 8:
+            return QImage::Format_Grayscale8;
+        case 16:
+            return QImage::Format_Grayscale16;
+        }
+        break;
+    case SANE_FRAME_RGB:
+        switch (params.depth)
+        {
+        case 8:
+            return QImage::Format_RGB888;
+        }
+        break;
+    case SANE_FRAME_RED:
+        break;
+    case SANE_FRAME_GREEN:
+        break;
+    case SANE_FRAME_BLUE:
+        break;
+    }
+    throw std::runtime_error("Incompatible image format from scanner");
+}
+
 Task<SANEOpt<>> Scanner::startScan()
 {
     if (!_init || !deviceSelected()) co_return SANE_STATUS_UNSUPPORTED;
@@ -295,13 +339,18 @@ Task<SANEOpt<>> Scanner::startScan()
     {
         return sane_start(_currentDeviceHandle);
     });
-    if (sta)
+    if (sta == SANE_STATUS_GOOD)
     {
         sta = co_await updateParameters();
-        if (sta)
+        if (sta == SANE_STATUS_GOOD)
         {
-            _buffer = vector<SANE_Byte>(_currentParameters.bytes_per_line * _currentParameters.lines);
-            _stream = SANEStream(span(_buffer.data(), _buffer.size()));
+            _scanning = true;
+            const auto sz = _currentParameters.bytes_per_line * _currentParameters.lines;
+            _currentBuffer = vector<char>(sz);
+            _currentImage = QImage(reinterpret_cast<uchar*>(_currentBuffer.data()), _currentParameters.pixels_per_line,
+                                   _currentParameters.lines, _currentParameters.bytes_per_line,
+                                   toQFormat(_currentParameters));
+            _stream = ospanstream(span(_currentBuffer.data(), sz));
             readLoop();
         }
     }
@@ -319,29 +368,42 @@ Task<SANEOpt<>> Scanner::stopScan()
     co_return SANE_STATUS_GOOD;
 }
 
-void Scanner::clearPageBuffer()
+SANEOpt<> Scanner::clearCurrentImage()
 {
-    _buffer = {};
+    if (_scanning) return SANE_STATUS_UNSUPPORTED;
+    _currentImage = {};
+    _currentBuffer = {};
+    return SANE_STATUS_GOOD;
 }
 
 Task<> Scanner::readLoop()
 {
     SANE_Byte buffer[BUFFER_SIZE];
+    auto buf = reinterpret_cast<char*>(buffer);
     int len;
     while (true)
     {
         do
         {
-            const auto sta = sane_read(_currentDeviceHandle, buffer, BUFFER_SIZE, &len); // ! blocking
-            if (!sta)
+            const auto sta = co_await QtConcurrent::run([this, &len, &buffer]
+            {
+                return sane_read(_currentDeviceHandle, buffer, BUFFER_SIZE, &len);
+            });
+            if (sta != SANE_STATUS_GOOD)
             {
                 _scanning = false;
+                _stream.flush();
+                co_await QtConcurrent::run([this]
+                {
+                    return _currentImage.save(app().book().getNewScanPath().c_str());
+                }); // ! success
                 emit pageScanned();
                 co_return;
             }
-            _stream.write(buffer, len);
+            _stream.write(buf, len);
         }
-        while (len == BUFFER_SIZE);
+        while (len > 0);
+        qDebug() << "l0\n";
         co_await delay(200);
     }
 }

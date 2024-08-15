@@ -70,6 +70,12 @@ json& StaticJsonModel::jSON() const
     return _json.value();
 }
 
+json& StaticJsonModel::descriptor() const
+{
+    if (!_json.has_value()) resetJsonInternal();
+    return _jsonDescriptor.value();
+}
+
 JsonStructure& StaticJsonModel::structure() const
 {
     if (!_json.has_value()) resetJsonInternal();
@@ -79,6 +85,7 @@ JsonStructure& StaticJsonModel::structure() const
 void StaticJsonModel::resetJsonInternal() const
 {
     _json = createJson();
+    _jsonDescriptor = createJsonDescriptor(_json);
     _jsonStructure = JsonStructure::fromJsonWithoutParents(_json);
     _jsonStructure->setParents();
 }
@@ -87,6 +94,11 @@ void StaticJsonModel::resetJson()
 {
     resetJsonInternal();
     endResetModel();
+}
+
+json StaticJsonModel::createJsonDescriptor(const json& j) const
+{
+    return defaultDescriptor(j);
 }
 
 QModelIndex StaticJsonModel::index(int row, int column, const QModelIndex& parent) const
@@ -144,7 +156,7 @@ QVariant StaticJsonModel::data(const QModelIndex& index, int role) const
             case 0:
                 return js.path.back().c_str();
             case 1:
-                return js.isContainer ? "" : jSON().at(js.path).dump().c_str();
+                return js.isContainer ? "" : dumpValue(jSON().at(js.path)).c_str();
             default:
                 break;
             }
@@ -153,7 +165,7 @@ QVariant StaticJsonModel::data(const QModelIndex& index, int role) const
     case Qt::FontRole:
         {
             QFont f{};
-            if (!js.parent.ptr->parent)
+            if (!js.parent.ptr->parent && jSON().at(js.path).type() == json_value_t::object)
             {
                 f.setBold(true);
             }
@@ -174,8 +186,7 @@ bool StaticJsonModel::setData(const QModelIndex& index, const QVariant& value, i
 {
     const auto& js = *static_cast<JsonStructure*>(index.internalPointer());
     // const auto t = jSON()[js.path].type();
-    const auto jv = json::parse(value.toString().toStdString());
+    const auto jv = qVariantToJson(value);
     jSON()[js.path] = jv;
-    editJsonProperty(js.path, jv);
-    return true; // !
+    return editJsonProperty(js.path, jv);
 }

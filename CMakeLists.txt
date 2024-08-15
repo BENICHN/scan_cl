@@ -99,6 +99,13 @@ add_executable(scan
         src/MainWindow.cpp
         src/MainWindow.h
         src/MainWindow.ui
+        src/data/ScanOptionsModel.cpp
+        src/data/ScanOptionsModel.h
+        src/data/StaticJsonDelegate.cpp
+        src/data/StaticJsonDelegate.h
+        src/data/StaticJsonEditor.cpp
+        src/data/StaticJsonEditor.h
+        src/data/StaticJsonEditor.ui
 )
 target_link_libraries(scan
         Qt::Core

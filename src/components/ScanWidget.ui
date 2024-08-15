@@ -35,7 +35,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,1">
+    <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0">
      <item>
       <widget class="QLabel" name="label_5">
        <property name="text">
@@ -47,10 +47,19 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="opts">
-       <property name="text">
-        <string/>
+      <widget class="QTreeView" name="opts">
+       <property name="alternatingRowColors">
+        <bool>true</bool>
        </property>
+       <property name="indentation">
+        <number>10</number>
+       </property>
+       <attribute name="headerVisible">
+        <bool>false</bool>
+       </attribute>
+       <attribute name="headerStretchLastSection">
+        <bool>false</bool>
+       </attribute>
       </widget>
      </item>
     </layout>
@@ -68,7 +77,14 @@
       </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="initCropW"/>
+      <widget class="QSpinBox" name="initCropW">
+       <property name="suffix">
+        <string>mm</string>
+       </property>
+       <property name="maximum">
+        <number>1000000</number>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_3">
@@ -78,7 +94,14 @@
       </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="initCropH"/>
+      <widget class="QSpinBox" name="initCropH">
+       <property name="suffix">
+        <string>mm</string>
+       </property>
+       <property name="maximum">
+        <number>1000000</number>
+       </property>
+      </widget>
      </item>
      <item>
       <spacer name="horizontalSpacer">
@@ -208,7 +231,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="label_8">
+      <widget class="QLabel" name="lLab">
        <property name="text">
         <string>(img)</string>
        </property>
@@ -218,14 +241,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="label_9">
-       <property name="text">
-        <string>(img)</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
+      <widget class="ImageViewerWidget" name="rLab" native="true"/>
      </item>
     </layout>
    </item>
@@ -236,6 +252,12 @@
    <class>PageNavWidget</class>
    <extends>QWidget</extends>
    <header>../../../src/components/PageNavWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ImageViewerWidget</class>
+   <extends>QWidget</extends>
+   <header>../../../src/widgets/ImageViewerWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

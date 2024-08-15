@@ -231,34 +231,40 @@ json Book::globalSettings(const string& name) const
     return {};
 }
 
+auto&& getOrCreate(auto&& dir)
+{
+    stf::create_directories(dir);
+    return dir;
+}
+
 string Book::sourcesDir() const
 {
-    return _root + "/sources/";
+    return getOrCreate(_root + "/sources/");
 }
 
 string Book::outputDir() const
 {
-    return _root + "/output/";
+    return getOrCreate(_root + "/output/");
 }
 
 string Book::generatedDir() const
 {
-    return _root + "/.generated/";
+    return getOrCreate(_root + "/.generated/");
 }
 
 string Book::sourcesThumbnailsdDir() const
 {
-    return _root + "/.thumbnails/sources/";
+    return getOrCreate(_root + "/.thumbnails/sources/");
 }
 
 string Book::mergingChoicesDir() const
 {
-    return _root + "/.choices/merging/";
+    return getOrCreate(_root + "/.choices/merging/");
 }
 
 string Book::cleaningChoicesDir() const
 {
-    return _root + "/.choices/cleaning/";
+    return getOrCreate(_root + "/.choices/cleaning/");
 }
 
 string Book::pageSourceBWPath(const int id) const
@@ -439,6 +445,35 @@ string Book::getPageSourceThumbnail(const int id) const
     const auto scaled = pix.scaled(200, 200, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     scaled.save(path.c_str()); // !
     return path;
+}
+
+string Book::scanDir() const
+{
+    return getOrCreate(_root + "/.scan/");
+}
+
+string Book::getNewScanPath() const
+{
+    const auto now_time_t = std::time(nullptr);
+    const auto now_tm = *std::localtime(&now_time_t);
+    ostringstream ss;
+    ss << std::put_time(&now_tm,"%Y-%m-%d-%H-%M-%S");
+    const auto d = scanDir();
+    bool ok = true;
+    do {
+        for (const auto& f : stf::directory_iterator(d))
+        {
+            const auto fn = f.path().stem().string();
+            if (fn == ss.str())
+            {
+                ok = false;
+                ss << '_';
+                break;
+            }
+        }
+    } while (!ok);
+    ss << ".png";
+    return d + ss.str();
 }
 
 void Book::applyChoiceToPage(const int id, const SelectionInfo& selection)

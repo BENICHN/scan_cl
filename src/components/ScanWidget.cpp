@@ -7,6 +7,8 @@
 #include "ScanWidget.h"
 #include "ui_ScanWidget.h"
 #include "../app.h"
+#include "../data/StaticJsonDelegate.h"
+#include "../data/ScanOptionsModel.h"
 
 
 ScanWidget::ScanWidget(QWidget* parent) :
@@ -25,10 +27,37 @@ ScanWidget::ScanWidget(QWidget* parent) :
             {
                 ui->devList->setCurrentIndex(0);
             }
-            updateOptions();
-            ui->devList->setEnabled(true); // ! trop tot
+            // updateOptions().then([=]
+            // {
+            updatePixmap();
+            ui->devList->setEnabled(true);
+            // });
         });
     });
+    connect(ui->playBtn, &QPushButton::clicked, [=]
+    {
+        ui->playBtn->setDisabled(true);
+        app().scanner().startScan().then([=](const auto& sta)
+        {
+            if (sta)
+            {
+                updatePixmapLoop();
+            }
+            else
+            {
+                ui->playBtn->setEnabled(true);
+            }
+        });
+    });
+    connect(&app().scanner(), &Scanner::pageScanned, [=]
+    {
+        updatePixmap();
+        ui->playBtn->setEnabled(true);
+    });
+    ui->opts->setModel(new ScanOptionsModel(ui->opts));
+    ui->opts->setItemDelegate(new StaticJsonDelegate(ui->opts));
+    ui->opts->header()->setSectionResizeMode(1, QHeaderView::Stretch);
+    ui->opts->expandAll();
     updateDevices();
 }
 
@@ -46,10 +75,40 @@ void ScanWidget::updateDevices()
     ui->devList->setCurrentIndex(0);
 }
 
-void ScanWidget::updateOptions()
+// void ScanWidget::updateOptions()
+// {
+//     // return app().scanner().getOptionsValues().then([=](const auto& j)
+//     // {
+//     //     ui->opts->setText(j ? j.value().dump(2).c_str() : "");
+//     // });
+// }
+
+void ScanWidget::updatePixmap()
 {
-    app().scanner().getOptionsValues().then([=](const auto& j)
+    auto pix = app().scanner().generateCurrentPixmap();
+    addCropLines(pix);
+    ui->rLab->setPixmap(pix);
+}
+
+Task<> ScanWidget::updatePixmapLoop()
+{
+    const auto& scanner = app().scanner();
+    while (scanner.scanning())
     {
-        ui->opts->setText(j ? j.value().dump(2).c_str() : "");
+        updatePixmap();
+        co_await delay(200);
+    }
+}
+
+void ScanWidget::addCropLines(QPixmap& pix)
+{
+    const auto w = ui->initCropW->value();
+    const auto h = ui->initCropH->value();
+    QPainter painter(&pix);
+    painter.setPen({Qt::red, 1.5});
+    painter.drawPolyline(QPolygon{
+        {0, h},
+        {w, h},
+        {w, 0}
     });
 }

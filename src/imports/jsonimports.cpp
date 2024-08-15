@@ -45,3 +45,31 @@ json qVariantToJson(const QVariant& v)
         return nullptr;
     }
 }
+
+QVariant jsonToQVariant(const json& j)
+{
+    switch (j.type())
+    {
+    case nlohmann::detail::value_t::string:
+        return j.get_ref<const std::string&>().c_str();
+    case nlohmann::detail::value_t::boolean:
+        return j.get<bool>();
+    case nlohmann::detail::value_t::number_integer:
+        return j.get<int>();
+    case nlohmann::detail::value_t::number_unsigned:
+        return j.get<uint>();
+    case nlohmann::detail::value_t::number_float:
+        return j.get<double>();
+    default:
+        return {};
+    }
+}
+
+std::string dumpValue(const json& j)
+{
+    if (j.type() == json_value_t::string)
+    {
+        return j.get<std::string>();
+    }
+    return j.dump();
+}

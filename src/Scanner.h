@@ -107,7 +107,6 @@ public:
 };
 
 using SANE_Info = SANE_Int;
-using SANEStream = basic_ospanstream<SANE_Byte>;
 
 class Scanner final : public QObject
 {
@@ -121,8 +120,9 @@ class Scanner final : public QObject
     vector<const SANE_Option_Descriptor*> _currentOptions;
     SANE_Parameters _currentParameters;
     bool _scanning = false;
-    vector<SANE_Byte> _buffer;
-    SANEStream _stream;
+    vector<char> _currentBuffer;
+    QImage _currentImage;
+    ospanstream _stream;
 
 public:
     explicit Scanner(QObject* parent = nullptr);
@@ -134,11 +134,12 @@ public:
     }
 
     [[nodiscard]] bool initialized() const { return _init; }
+    [[nodiscard]] bool scanning() const { return _scanning; }
     [[nodiscard]] bool deviceSelected() const { return _currentDevice; }
     [[nodiscard]] const span<const SANE_Device*>& devices() const { return _devices; }
     [[nodiscard]] const SANE_Device* currentDevice() const { return _currentDevice; }
     [[nodiscard]] const vector<const SANE_Option_Descriptor*>& currentOptions() const { return _currentOptions; }
-    [[nodiscard]] const SANEStream& stream() const { return _stream; }
+    [[nodiscard]] QPixmap generateCurrentPixmap() const;
 
     [[nodiscard]] const SANE_Parameters* currentParameters() const
     {
@@ -160,7 +161,7 @@ public:
 
     Task<SANEOpt<>> startScan();
     Task<SANEOpt<>> stopScan();
-    void clearPageBuffer();
+    SANEOpt<> clearCurrentImage();
 
     static constexpr int BUFFER_SIZE = 1048576;
 

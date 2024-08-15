@@ -22,7 +22,8 @@ public:
 
 protected:
     [[nodiscard]] json createJson() const override;
-    void editJsonProperty(const JsonStructure::path_t& path, const json& value) const override;
+    bool editJsonProperty(const JsonStructure::path_t& path, const json& value) const override;
+    [[nodiscard]] json createJsonDescriptor(const json& j) const override;
 };
 
 

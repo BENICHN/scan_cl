@@ -24,7 +24,7 @@ Task<SANEOpt<>> Scanner::init()
 Task<SANEOpt<>> Scanner::updateDevices()
 {
     if (!_init) co_return SANE_STATUS_UNSUPPORTED;
-    _devices = {};
+    _devices.clear();
 
     const SANE_Device** devices;
     const SANEOpt sta = co_await QtConcurrent::run([&]
@@ -34,18 +34,17 @@ Task<SANEOpt<>> Scanner::updateDevices()
 
     if (sta)
     {
-        int i = 0;
-        while (devices[i])
+        while (*devices)
         {
-            ++i;
+            _devices.emplace_back(*devices);
+            ++devices;
         }
-        _devices = span(devices, i);
     }
     emit devicesFound(_devices);
     co_return sta;
 }
 
-Task<SANEOpt<>> Scanner::setCurrentDevice(const SANE_Device* dev)
+Task<SANEOpt<>> Scanner::setCurrentDevice(const SANEDevice* dev)
 {
     if (!_init) co_return SANE_STATUS_UNSUPPORTED;
     if (deviceSelected()) co_await closeCurrentDevice(); // retourne toujours true
@@ -53,7 +52,7 @@ Task<SANEOpt<>> Scanner::setCurrentDevice(const SANE_Device* dev)
 
     SANEOpt sta = co_await QtConcurrent::run([=]
     {
-        return sane_open(dev->name, &_currentDeviceHandle);
+        return sane_open(dev->name.c_str(), &_currentDeviceHandle);
     });
 
     if (sta)
@@ -74,7 +73,7 @@ Task<SANEOpt<>> Scanner::setCurrentDevice(const SANE_Device* dev)
 Task<SANEOpt<>> Scanner::setCurrentDevice(const int i)
 {
     if (i != -1 && (i < 0 || i >= _devices.size())) co_return SANE_STATUS_UNSUPPORTED;
-    co_return co_await setCurrentDevice(i == -1 ? nullptr : _devices[i]);
+    co_return co_await setCurrentDevice(i == -1 ? nullptr : &_devices[i]);
 }
 
 Task<> Scanner::exit()
@@ -126,6 +125,56 @@ Task<SANEOpt<>> Scanner::closeCurrentDevice()
     co_return SANE_STATUS_GOOD;
 }
 
+SANEOptionDescriptor::SANEOptionDescriptor(const SANE_Option_Descriptor* p):
+    name(p->name ? p->name : ""),
+    title(p->title),
+    desc(p->desc),
+    type(p->type),
+    unit(p->unit),
+    size(p->size),
+    cap(p->cap),
+    constraint_type(p->constraint_type),
+    constraint(
+        constraint_type == SANE_CONSTRAINT_RANGE ? SANEConstraint{*p->constraint.range} :
+            constraint_type == SANE_CONSTRAINT_WORD_LIST ? SANEConstraint{vector<SANE_Word>()} :
+            constraint_type == SANE_CONSTRAINT_STRING_LIST ? SANEConstraint{vector<string>()} : nullopt
+    )
+{
+    switch (constraint_type)
+    {
+    case SANE_CONSTRAINT_WORD_LIST:
+        {
+            auto wl = p->constraint.word_list;
+            const int l = *wl++;
+            auto& cwl = constraintWordList();
+            for (int i = 0; i < l; ++i)
+            {
+                cwl.emplace_back(wl[i]);
+            }
+        }
+        break;
+    case SANE_CONSTRAINT_STRING_LIST:
+        {
+            auto sl = p->constraint.string_list;
+            auto& csl = constraintStringList();
+            while (*sl)
+            {
+                csl.emplace_back(*sl);
+                ++sl;
+            }
+        }
+        break;
+    }
+}
+
+SANEDevice::SANEDevice(const SANE_Device* p):
+    name(p->name),
+    vendor(p->vendor),
+    model(p->model),
+    type(p->type)
+{
+}
+
 Scanner::Scanner(QObject* parent) : QObject(parent), _stream({})
 {
 }
@@ -137,14 +186,16 @@ QPixmap Scanner::generateCurrentPixmap() const
     {
         return QPixmap::fromImage(_currentImage);
     }
-    return {_currentParameters.pixels_per_line, _currentParameters.lines};
+    auto res = QPixmap{_currentParameters.pixels_per_line, _currentParameters.lines};
+    res.fill(Qt::white);
+    return res;
 }
 
 Task<SANEOpt<json>> Scanner::getOptionValueAt(int i) const
 {
     if (!_init || !deviceSelected() || i < 0 || i >= _currentOptions.size()) co_return SANE_STATUS_UNSUPPORTED;
     const auto desc = _currentOptions[i];
-    switch (desc->type)
+    switch (desc.type)
     {
     case SANE_TYPE_BOOL:
         {
@@ -175,7 +226,7 @@ Task<SANEOpt<json>> Scanner::getOptionValueAt(int i) const
         }
     case SANE_TYPE_STRING:
         {
-            const auto v = new SANE_Char[desc->size];
+            const auto v = new SANE_Char[desc.size];
             const auto sta = co_await QtConcurrent::run([=]
             {
                 return sane_control_option(_currentDeviceHandle, i, SANE_ACTION_GET_VALUE, v, nullptr);
@@ -189,15 +240,15 @@ Task<SANEOpt<json>> Scanner::getOptionValueAt(int i) const
     }
 }
 
-Task<SANEOpt<json>> Scanner::getOptionValue(const SANE_Option_Descriptor* desc) const
-{
-    const int i = str::find(_currentOptions, desc) - _currentOptions.begin();
-    if (i == _currentOptions.size())
-    {
-        co_return SANE_STATUS_UNSUPPORTED;
-    }
-    co_return co_await getOptionValueAt(i);
-}
+// Task<SANEOpt<json>> Scanner::getOptionValue(const SANE_Option_Descriptor* desc) const
+// {
+//     const int i = str::find(_currentOptions, desc) - _currentOptions.begin();
+//     if (i == _currentOptions.size())
+//     {
+//         co_return SANE_STATUS_UNSUPPORTED;
+//     }
+//     co_return co_await getOptionValueAt(i);
+// }
 
 Task<SANEOpt<json>> Scanner::getOptionsValues() const
 {
@@ -206,7 +257,7 @@ Task<SANEOpt<json>> Scanner::getOptionsValues() const
     {
         if (i == 0) continue; // skip "number of properties"
         const auto desc = _currentOptions[i];
-        switch (desc->type)
+        switch (desc.type)
         {
         case SANE_TYPE_BUTTON:
         case SANE_TYPE_GROUP:
@@ -215,7 +266,7 @@ Task<SANEOpt<json>> Scanner::getOptionsValues() const
             {
                 const auto v = co_await getOptionValueAt(i);
                 if (!v) co_return v;
-                res[desc->title] = v.value();
+                res[desc.title] = v.value();
             }
             break;
         }
@@ -223,80 +274,68 @@ Task<SANEOpt<json>> Scanner::getOptionsValues() const
     co_return res;
 }
 
-Task<SANEOpt<SANE_Info>> Scanner::setOptionsValueAt(const int i, const json& value)
+SANEOpt<SANE_Info> Scanner::setOptionValueAt(const int i, const json& value)
 {
-    if (!_init || !deviceSelected() || i < 0 || i >= _currentOptions.size()) co_return SANE_STATUS_UNSUPPORTED;
+    if (!_init || !deviceSelected() || i < 0 || i >= _currentOptions.size()) return SANE_STATUS_UNSUPPORTED;
     const auto desc = _currentOptions[i];
     SANE_Info inf;
-    switch (desc->type)
+    switch (desc.type)
     {
     case SANE_TYPE_BOOL:
         {
             SANE_Bool v = value.get<bool>();
-            const auto sta = co_await QtConcurrent::run([&, this]
-            {
-                return sane_control_option(_currentDeviceHandle, i, SANE_ACTION_SET_VALUE, &v, &inf);
-            });
-            if (sta != SANE_STATUS_GOOD) co_return sta;
+            const auto sta = sane_control_option(_currentDeviceHandle, i, SANE_ACTION_SET_VALUE, &v, &inf);
+            if (sta != SANE_STATUS_GOOD) return sta;
         }
+        break;
     case SANE_TYPE_INT:
         {
             SANE_Int v = value.get<int>();
-            const auto sta = co_await QtConcurrent::run([&, this]
-            {
-                return sane_control_option(_currentDeviceHandle, i, SANE_ACTION_SET_VALUE, &v, &inf);
-            });
-            if (sta != SANE_STATUS_GOOD) co_return sta;
+            const auto sta = sane_control_option(_currentDeviceHandle, i, SANE_ACTION_SET_VALUE, &v, &inf);
+            if (sta != SANE_STATUS_GOOD) return sta;
         }
+        break;
     case SANE_TYPE_FIXED:
         {
             SANE_Fixed v = SANE_FIX(value.get<double>());
-            const auto sta = co_await QtConcurrent::run([&, this]
-            {
-                return sane_control_option(_currentDeviceHandle, i, SANE_ACTION_SET_VALUE, &v, &inf);
-            });
-            if (sta != SANE_STATUS_GOOD) co_return sta;
+            const auto sta = sane_control_option(_currentDeviceHandle, i, SANE_ACTION_SET_VALUE, &v, &inf);
+            if (sta != SANE_STATUS_GOOD) return sta;
         }
+        break;
     case SANE_TYPE_STRING:
         {
-            SANE_String v = value.get<string>().data();
-            const auto sta = co_await QtConcurrent::run([&, this]
-            {
-                return sane_control_option(_currentDeviceHandle, i, SANE_ACTION_SET_VALUE, &v, &inf);
-            });
-            if (sta != SANE_STATUS_GOOD) co_return sta;
+            auto v = const_cast<SANE_String>(value.get_ref<const string&>().c_str());
+            const auto sta = sane_control_option(_currentDeviceHandle, i, SANE_ACTION_SET_VALUE, v, &inf);
+            if (sta != SANE_STATUS_GOOD) return sta;
         }
+        break;
     default:
         {
-            const auto sta = co_await QtConcurrent::run([&, this]
-            {
-                return sane_control_option(_currentDeviceHandle, i, SANE_ACTION_SET_VALUE, nullptr, &inf);
-            });
-            if (sta != SANE_STATUS_GOOD) co_return sta;
+            const auto sta = sane_control_option(_currentDeviceHandle, i, SANE_ACTION_SET_VALUE, nullptr, &inf);
+            if (sta != SANE_STATUS_GOOD) return sta;
         }
+        break;
     }
-    auto st = SANE_STATUS_GOOD;
-    switch (inf)
+    if (inf & SANE_INFO_RELOAD_OPTIONS)
     {
-    case SANE_INFO_RELOAD_OPTIONS:
-        st = co_await updateOptions();
-        break;
-    case SANE_INFO_RELOAD_PARAMS:
-        st = co_await updateParameters();
-        break;
+        updateOptions();
     }
-    co_return {inf, st};
+    if (inf & SANE_INFO_RELOAD_PARAMS)
+    {
+        updateParameters();
+    }
+    return {inf, SANE_STATUS_GOOD};
 }
 
-Task<SANEOpt<SANE_Info>> Scanner::setOptionsValue(const SANE_Option_Descriptor* desc, const json& value)
-{
-    const int i = str::find(_currentOptions, desc) - _currentOptions.begin();
-    if (i == _currentOptions.size())
-    {
-        co_return SANE_STATUS_UNSUPPORTED;
-    }
-    co_return co_await setOptionsValueAt(i, value);
-}
+// Task<SANEOpt<SANE_Info>> Scanner::setOptionsValue(const SANE_Option_Descriptor* desc, const json& value)
+// {
+//     const int i = str::find(_currentOptions, desc) - _currentOptions.begin();
+//     if (i == _currentOptions.size())
+//     {
+//         co_return SANE_STATUS_UNSUPPORTED;
+//     }
+//     co_return co_await setOptionsValueAt(i, value);
+// }
 
 QImage::Format toQFormat(const SANE_Parameters& params)
 {

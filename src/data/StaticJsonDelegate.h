@@ -2,8 +2,8 @@
 // Created by benichn on 15/08/24.
 //
 
-#ifndef SCANOPTIONSDELEGATE_H
-#define SCANOPTIONSDELEGATE_H
+#ifndef STATICJSONDELEGATE_H
+#define STATICJSONDELEGATE_H
 #include <QStyledItemDelegate>
 
 
@@ -21,9 +21,9 @@ public:
     void updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option,
                               const QModelIndex& index) const override;
 
-private slots:
-    void commitAndCloseEditor();
+// private slots:
+//     void commitAndCloseEditor();
 };
 
 
-#endif //SCANOPTIONSDELEGATE_H
+#endif //STATICJSONDELEGATE_H

@@ -42,6 +42,6 @@ bool PageSettingsModel::editJsonProperty(const JsonStructure::path_t& path, cons
 json PageSettingsModel::createJsonDescriptor(const json& j) const
 {
     return defaultDescriptor(j, {
-                                 {"nullable", "true"}
+                                 {"nullable", true}
                              });
 }

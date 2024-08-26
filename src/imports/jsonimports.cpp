@@ -51,7 +51,7 @@ QVariant jsonToQVariant(const json& j)
     switch (j.type())
     {
     case nlohmann::detail::value_t::string:
-        return j.get_ref<const std::string&>().c_str();
+        return j.get_ref<const json::string_t&>().c_str();
     case nlohmann::detail::value_t::boolean:
         return j.get<bool>();
     case nlohmann::detail::value_t::number_integer:

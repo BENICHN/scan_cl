@@ -23,23 +23,28 @@ QSize StaticJsonDelegate::sizeHint(const QStyleOptionViewItem& option, const QMo
     return QStyledItemDelegate::sizeHint(option, index);
 }
 
-json getNVD(const QModelIndex& index)
+json getDesc(const QModelIndex& index)
+{
+    json res;
+    const auto model = qobject_cast<const StaticJsonModel*>(index.model());
+    const auto& jd = model->descriptor();
+    const auto& path = static_cast<JsonStructure*>(index.internalPointer())->path;
+    return jd[path];
+}
+
+json getVal(const QModelIndex& index)
 {
     json res;
     const auto model = qobject_cast<const StaticJsonModel*>(index.model());
     const auto& j = model->jSON();
-    const auto& jd = model->descriptor();
     const auto& path = static_cast<JsonStructure*>(index.internalPointer())->path;
-    res["name"] = path.back();
-    res["value"] = j[path];
-    res["desc"] = jd[path];
-    return res;
+    return j[path];
 }
 
 QWidget* StaticJsonDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem& option,
                                           const QModelIndex& index) const
 {
-    const auto ed = new StaticJsonEditor(getNVD(index), parent);
+    const auto ed = new StaticJsonEditor(getDesc(index), parent);
     // connect(ed, &StaticJsonEditor::editingFinished, this, &StaticJsonDelegate::commitAndCloseEditor);
     return ed;
 }
@@ -47,6 +52,7 @@ QWidget* StaticJsonDelegate::createEditor(QWidget* parent, const QStyleOptionVie
 void StaticJsonDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
 {
     qDebug() << "SED\n";
+    qobject_cast<StaticJsonEditor*>(editor)->setupEditor(getVal(index));
     // QStyledItemDelegate::setEditorData(editor, index);
 }
 
@@ -54,7 +60,7 @@ void StaticJsonDelegate::setModelData(QWidget* editor, QAbstractItemModel* model
 {
     qDebug() << "SMD\n";
     const auto ed = qobject_cast<StaticJsonEditor*>(editor);
-    model->setData(index, jsonToQVariant(ed->value()));
+    qobject_cast<StaticJsonModel*>(model)->setJsonData(index, ed->value());
 }
 
 void StaticJsonDelegate::updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option,
@@ -63,9 +69,9 @@ void StaticJsonDelegate::updateEditorGeometry(QWidget* editor, const QStyleOptio
     QStyledItemDelegate::updateEditorGeometry(editor, option, index);
 }
 
-void StaticJsonDelegate::commitAndCloseEditor()
-{
-    const auto editor = qobject_cast<StaticJsonEditor*>(sender());
-    emit commitData(editor);
-    emit closeEditor(editor);
-}
+// void StaticJsonDelegate::commitAndCloseEditor()
+// {
+//     const auto editor = qobject_cast<StaticJsonEditor*>(sender());
+//     emit commitData(editor);
+//     emit closeEditor(editor);
+// }

@@ -102,12 +102,12 @@
         {
           "name": "Recadrage",
           "settings": null,
-          "status": "SST_NOTRUN"
+          "status": "SST_COMPLETE"
         },
         {
           "name": "Assemblage",
           "settings": null,
-          "status": "SST_NOTRUN"
+          "status": "SST_WAITING"
         },
         {
           "name": "Nettoyage",

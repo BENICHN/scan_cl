@@ -184,58 +184,6 @@ def process_img(gray, clr, op):
     big_ccs_total_mask = ((big_light_ccs_mask + big_ccs_mask) > 0).astype('uint8')
     
     return (1-bw4, big_ccs_total_mask) if colorMode == 'PT_BLACK' else (1-bw4, adjusted_clr, big_ccs_total_mask)
-        
-    # Effacement des gros blocs
-##             newbmask = big_ccs_total_mask.copy()
-##             print('/!\\ big blocks detected')
-##             bgsmask = (cv2.blur(big_ccs_total_mask * 255, ksize=(50,50)) == 0).astype('uint8')
-##             diff = (1 - nz1) * 255 / (1+bgsmask)
-##             nbg, labbg, statsbg, centbg = cv2.connectedComponentsWithStats(1-bgsmask)
-## 
-##             def onclose(inv):
-##                 nonlocal newbmask
-##                 if inv:
-##                     newbmask = (newbmask < 0).astype('uint8')
-##                 else:
-##                     newbmask = (newbmask > 0).astype('uint8')
-## 
-##             def invcc(iv, c, p):
-##                 nonlocal newbmask
-##                 if c != 0:
-##                     labc = lab * big_ccs_total_mask * (labbg == c).astype('i')
-##                     labcnz = np.nonzero(labc)
-##                     if p is None:
-##                         ccs = np.unique(labc)
-##                     else:
-##                         m = np.argmin((labcnz[0] - p[0]) ** 2 + (labcnz[1] - p[1]) ** 2)
-##                         ccs = [lab[labcnz[0][m], labcnz[1][m]]]
-##                     newbmask[np.isin(lab, ccs)] *= -1
-##                     diff[labbg == c] /= 2
-##                     iv.update_data(diff.astype('uint8'))
-## 
-##             def onclick(iv, x, y):
-##                 c = labbg[y,x]
-##                 invcc(iv, c, (x, y))
-## 
-##             def onselection(iv, tl, br):
-##                 xs = sorted((tl.x(), br.x()))
-##                 ys = sorted((tl.y(), br.y()))
-##                 cs = np.unique(labbg[pos(ys[0]):ys[1]+1, pos(xs[0]):xs[1]+1])
-##                 for c in cs:
-##                     invcc(iv, c, None)
-## 
-##             QImageViewer(diff.astype('uint8'), QImage.Format.Format_Grayscale8, 1, False, 0, onclick, onclose, onselection).showMaximized()
-##             big_ccs_total_mask = newbmask
-##         nz2 = nz1 * (1 - big_ccs_total_mask)
-##         nz2f = nz * smask * (1 - big_ccs_total_mask)
-##         nz2y, nz2x = np.nonzero(nz2f)
-##         nt = np.min(nz2y)
-##         nb = np.max(nz2y)
-##         nl = np.min(nz2x)
-##         nr = np.max(nz2x)
-##         nz2c = nz2[pos(nt-corr):nb+1+corr,pos(nl-corr):nr+1+corr]
-##         cleaned = 1 - nz2c
-##         if color: selectedclrc = selectedclr[pos(nt-corr):nb+1+corr,pos(nl-corr):nr+1+corr]
     
 #########################################################################################################
 

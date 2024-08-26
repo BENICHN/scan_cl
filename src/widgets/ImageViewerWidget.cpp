@@ -167,6 +167,7 @@ void ImageViewerWidget::setSR()
 
 void ImageViewerWidget::setPixmapInternal(const QPixmap& pixmap)
 {
+    if (_imageLoadingToken) _imageLoadingToken->cancel();
     _loadingLabel->hide();
     _pixmap = pixmap;
     _imageLabel->setPixmap(_pixmap);

@@ -13,10 +13,13 @@
     <height>760</height>
    </rect>
   </property>
+  <property name="focusPolicy">
+   <enum>Qt::StrongFocus</enum>
+  </property>
   <property name="windowTitle">
    <string>ScanWidget</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,1">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,1">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,1">
      <item>
@@ -61,60 +64,6 @@
         <bool>false</bool>
        </attribute>
       </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
-     <item>
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Recadrage initial :</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QSpinBox" name="initCropW">
-       <property name="suffix">
-        <string>mm</string>
-       </property>
-       <property name="maximum">
-        <number>1000000</number>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>×</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QSpinBox" name="initCropH">
-       <property name="suffix">
-        <string>mm</string>
-       </property>
-       <property name="maximum">
-        <number>1000000</number>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
      </item>
     </layout>
    </item>
@@ -241,7 +190,7 @@
       </widget>
      </item>
      <item>
-      <widget class="ImageViewerWidget" name="rLab" native="true"/>
+      <widget class="ScanButtons" name="rSB" native="true"/>
      </item>
     </layout>
    </item>
@@ -255,21 +204,19 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ImageViewerWidget</class>
+   <class>ScanButtons</class>
    <extends>QWidget</extends>
-   <header>../../../src/widgets/ImageViewerWidget.h</header>
+   <header>../../../src/widgets/ScanButtons.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
  <tabstops>
   <tabstop>devList</tabstop>
-  <tabstop>initCropH</tabstop>
   <tabstop>seqFileBtn</tabstop>
   <tabstop>seqFileBox</tabstop>
   <tabstop>playBtn</tabstop>
   <tabstop>scanMultBox</tabstop>
   <tabstop>delayBox</tabstop>
-  <tabstop>initCropW</tabstop>
  </tabstops>
  <resources/>
  <connections>

@@ -156,7 +156,20 @@ QVariant StaticJsonModel::data(const QModelIndex& index, int role) const
             case 0:
                 return js.path.back().c_str();
             case 1:
-                return js.isContainer ? "" : dumpValue(jSON().at(js.path)).c_str();
+                {
+                    if (js.isContainer) return "";
+                    const auto s = dumpValue(jSON().at(js.path));
+                    const auto& desc = descriptor().at(js.path);
+                    if (desc.contains("details"))
+                    {
+                        const auto& details = desc["details"];
+                        if (details.contains("unit"))
+                        {
+                            return (s + details["unit"].get_ref<const json::string_t&>()).c_str();
+                        }
+                    }
+                    return s.c_str();
+                }
             default:
                 break;
             }
@@ -182,11 +195,72 @@ QVariant StaticJsonModel::data(const QModelIndex& index, int role) const
     return {};
 }
 
+json StaticJsonModel::defaultDescriptor(const json& j, const json& templ)
+{
+    const auto settable = templ.contains("settable") ? templ["settable"] : json(true);
+    const auto nullable = templ.contains("nullable") ? templ["nullable"] : json(false);
+    const auto active = templ.contains("active") ? templ["active"] : json(true);
+    json res;
+    for (const auto& kv : j.items())
+    {
+        json e = {
+            {"settable", settable},
+            {"name", kv.key()},
+            {"nullable", nullable},
+            {"active", active}
+        };
+        switch (kv.value().type())
+        {
+        case nlohmann::detail::value_t::null:
+            e["type"] = "null";
+            break;
+        case nlohmann::detail::value_t::string:
+            e["type"] = "string";
+            break;
+        case nlohmann::detail::value_t::boolean:
+            e["type"] = "bool";
+            break;
+        case nlohmann::detail::value_t::number_integer:
+            e["type"] = "int";
+            break;
+        case nlohmann::detail::value_t::number_unsigned:
+            e["type"] = "int";
+            e["details"] = {
+                {"min", 0}
+            };
+            break;
+        case nlohmann::detail::value_t::number_float:
+            e["type"] = "float";
+            break;
+        case nlohmann::detail::value_t::binary:
+            e["type"] = "null"; // !
+            break;
+        case nlohmann::detail::value_t::discarded:
+            e["type"] = "null"; // !
+            break;
+        case nlohmann::detail::value_t::object:
+        case nlohmann::detail::value_t::array:
+            res[kv.key()] = defaultDescriptor(kv.value(), templ);
+            continue;
+        }
+        res[kv.key()] = e;
+    }
+    return res;
+}
+
 bool StaticJsonModel::setData(const QModelIndex& index, const QVariant& value, int role)
 {
-    const auto& js = *static_cast<JsonStructure*>(index.internalPointer());
+    return setJsonData(index, qVariantToJson(value), role);
+}
+bool StaticJsonModel::setJsonData(const QModelIndex& index, const json& value, int role)
+{
+    auto path = static_cast<JsonStructure*>(index.internalPointer())->path; // pas ref pour si le path est détruit par l'appel à editJsonProprerty
     // const auto t = jSON()[js.path].type();
-    const auto jv = qVariantToJson(value);
-    jSON()[js.path] = jv;
-    return editJsonProperty(js.path, jv);
+    // if (js.path.empty()) return false;
+    if (editJsonProperty(path, value))
+    {
+        jSON()[path] = value;
+        return true;
+    }
+    return false;
 }

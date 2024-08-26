@@ -28,8 +28,8 @@ QMargins FinalStep::margins(const int w, const int h) const
     const int cropOverflow = app().book().page(_pageId).croppingStep().realSettings().at("cropOverflow");
     const int W = cmToPix(j.at("finalWidthCm"), dpi);
     const int H = cmToPix(j.at("finalHeightCm"), dpi);
-    const auto alignmentH = j.at("alignmentH").get_ref<const string&>()[0];
-    const auto alignmentV = j.at("alignmentV").get_ref<const string&>()[0];
+    const auto alignmentH = j.at("alignmentH").get_ref<const json::string_t&>()[0];
+    const auto alignmentV = j.at("alignmentV").get_ref<const json::string_t&>()[0];
 
     switch (alignmentH)
     {

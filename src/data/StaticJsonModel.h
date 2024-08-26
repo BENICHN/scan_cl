@@ -66,59 +66,10 @@ public:
     int rowCount(const QModelIndex& parent) const override;
     int columnCount(const QModelIndex& parent) const override;
     bool setData(const QModelIndex& index, const QVariant& value, int role) override;
+    bool setJsonData(const QModelIndex& index, const json& value, int role = Qt::EditRole);
     QVariant data(const QModelIndex& index, int role) const override;
 
-    static json defaultDescriptor(const json& j, const json& templ = {})
-    {
-        bool settable = templ.contains("settable") ? templ["settable"] : json{true};
-        bool nullable = templ.contains("nullable") ? templ["nullable"] : json{false};
-        bool active = templ.contains("active") ? templ["active"] : json{true};
-        json res;
-        for (const auto& kv : j.items())
-        {
-            json e = {
-                {"settable", settable},
-                {"nullable", nullable},
-                {"active", active}
-            };
-            switch (kv.value().type())
-            {
-            case nlohmann::detail::value_t::null:
-                e["type"] = "null";
-                break;
-            case nlohmann::detail::value_t::string:
-                e["type"] = "string";
-                break;
-            case nlohmann::detail::value_t::boolean:
-                e["type"] = "bool";
-                break;
-            case nlohmann::detail::value_t::number_integer:
-                e["type"] = "int";
-                break;
-            case nlohmann::detail::value_t::number_unsigned:
-                e["type"] = "int";
-                e["details"] = {
-                    {"min", 0}
-                };
-                break;
-            case nlohmann::detail::value_t::number_float:
-                e["type"] = "float";
-                break;
-            case nlohmann::detail::value_t::binary:
-                e["type"] = "null"; // !
-                break;
-            case nlohmann::detail::value_t::discarded:
-                e["type"] = "null"; // !
-                break;
-            case nlohmann::detail::value_t::object:
-            case nlohmann::detail::value_t::array:
-                res[kv.key()] = defaultDescriptor(kv.value(), templ);
-                continue;
-            }
-            res[kv.key()] = e;
-        }
-        return res;
-    }
+    static json defaultDescriptor(const json& j, const json& templ = {});
 };
 
 

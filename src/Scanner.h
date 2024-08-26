@@ -32,7 +32,7 @@ public:
     }
 
     template <class Self>
-    auto&& value(this Self self)
+    auto&& value(this Self&& self)
     {
         if (!self.isOk()) throw runtime_error("attempting to access value of a non ok SANEOpt");
         return get<0>(self._data);
@@ -108,16 +108,47 @@ public:
 
 using SANE_Info = SANE_Int;
 
+struct SANEOptionDescriptor
+{
+    string name; /* name of this option (command-line name) */
+    string title; /* title of this option (single-line) */
+    string desc; /* description of this option (multi-line) */
+    SANE_Value_Type type; /* how are values interpreted? */
+    SANE_Unit unit; /* what is the (physical) unit? */
+    SANE_Int size;
+    SANE_Int cap; /* capabilities */
+
+    SANE_Constraint_Type constraint_type;
+    using SANEConstraint = optional<variant<vector<string>, vector<SANE_Word>, SANE_Range>>;
+
+    SANEConstraint constraint;
+    template<typename Self> auto&& constraintStringList(this Self&& self) { return get<0>(self.constraint.value()); }
+    template<typename Self> auto&& constraintWordList(this Self&& self) { return get<1>(self.constraint.value()); }
+    template<typename Self> auto&& constraintRange(this Self&& self) { return get<2>(self.constraint.value()); }
+
+    explicit SANEOptionDescriptor(const SANE_Option_Descriptor* p);
+};
+
+struct SANEDevice
+{
+    explicit SANEDevice(const SANE_Device* p);
+
+    string name; /* unique device name */
+    string vendor; /* device vendor string */
+    string model; /* device model name */
+    string type; /* device type (e.g., "flatbed scanner") */
+};
+
 class Scanner final : public QObject
 {
     Q_OBJECT
 
     bool _init = false;
     SANE_Int _version = -1;
-    span<const SANE_Device*> _devices;
-    const SANE_Device* _currentDevice = nullptr;
+    vector<SANEDevice> _devices;
+    const SANEDevice* _currentDevice = nullptr;
     SANE_Handle _currentDeviceHandle = nullptr;
-    vector<const SANE_Option_Descriptor*> _currentOptions;
+    vector<SANEOptionDescriptor> _currentOptions;
     SANE_Parameters _currentParameters;
     bool _scanning = false;
     vector<char> _currentBuffer;
@@ -136,9 +167,9 @@ public:
     [[nodiscard]] bool initialized() const { return _init; }
     [[nodiscard]] bool scanning() const { return _scanning; }
     [[nodiscard]] bool deviceSelected() const { return _currentDevice; }
-    [[nodiscard]] const span<const SANE_Device*>& devices() const { return _devices; }
-    [[nodiscard]] const SANE_Device* currentDevice() const { return _currentDevice; }
-    [[nodiscard]] const vector<const SANE_Option_Descriptor*>& currentOptions() const { return _currentOptions; }
+    [[nodiscard]] const vector<SANEDevice>& devices() const { return _devices; }
+    [[nodiscard]] const SANEDevice* currentDevice() const { return _currentDevice; }
+    [[nodiscard]] const vector<SANEOptionDescriptor>& currentOptions() const { return _currentOptions; }
     [[nodiscard]] QPixmap generateCurrentPixmap() const;
 
     [[nodiscard]] const SANE_Parameters* currentParameters() const
@@ -147,15 +178,12 @@ public:
     }
 
     [[nodiscard]] Task<SANEOpt<json>> getOptionValueAt(int i) const;
-    [[nodiscard]] Task<SANEOpt<json>> getOptionValue(const SANE_Option_Descriptor* desc) const;
     [[nodiscard]] Task<SANEOpt<json>> getOptionsValues() const;
-
-    Task<SANEOpt<SANE_Info>> setOptionsValueAt(int i, const json& value);
-    Task<SANEOpt<SANE_Info>> setOptionsValue(const SANE_Option_Descriptor* desc, const json& value);
+    SANEOpt<SANE_Info> setOptionValueAt(int i, const json& value); // update les options sans attendre le resultat
 
     Task<SANEOpt<>> init();
     Task<SANEOpt<>> updateDevices();
-    Task<SANEOpt<>> setCurrentDevice(const SANE_Device* dev);
+    Task<SANEOpt<>> setCurrentDevice(const SANEDevice* dev);
     Task<SANEOpt<>> setCurrentDevice(int i);
     Task<> exit();
 
@@ -173,9 +201,9 @@ private:
 
 signals:
     void pageScanned();
-    void devicesFound(const span<const SANE_Device*>& newValue);
-    void currentDeviceChanged(const SANE_Device* newValue);
-    void currentOptionsChanged(const vector<const SANE_Option_Descriptor*>& newValue);
+    void devicesFound(const vector<SANEDevice>& newValue);
+    void currentDeviceChanged(const SANEDevice* newValue);
+    void currentOptionsChanged(const vector<SANEOptionDescriptor>& newValue);
     void currentParametersChanged(const SANE_Parameters* newValue);
 };
 

@@ -25,7 +25,12 @@ private:
     // Task<> updateOptions();
     void updatePixmap();
     Task<> updatePixmapLoop();
-    void addCropLines(QPixmap& pix);
+
+protected:
+void keyPressEvent(QKeyEvent* event) override;
+
+private:
+// void addCropLines(QPixmap& pix);
     Ui::ScanWidget *ui;
 };
 

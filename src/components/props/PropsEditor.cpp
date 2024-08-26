@@ -7,6 +7,7 @@
 #include "PropsEditor.h"
 #include "ui_PropsEditor.h"
 #include "../../data/PageSettingsModel.h"
+#include "../../data/StaticJsonDelegate.h"
 
 
 void PropsEditor::setSource(const PropsSource& source)
@@ -37,6 +38,7 @@ void PropsEditor::updateModel()
         {
             const int id = get<PTY_PAGE>(_source);
             ui->treeView->setModel(new PageSettingsModel(id, this)); // ! delete model ?
+            ui->treeView->setItemDelegate(new StaticJsonDelegate(this));
         }
         break;
     case PTY_NUMBER:

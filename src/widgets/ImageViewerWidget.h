@@ -101,7 +101,6 @@ Task<> ImageViewerWidget::setPixmapInternal(const auto& factory)
 {
     setPixmapInternal({});
     _loadingLabel->show();
-    if (_imageLoadingToken) _imageLoadingToken->cancel();
     CancelToken tk;
     _imageLoadingToken = &tk;
     const auto img = co_await QtConcurrent::run([=]

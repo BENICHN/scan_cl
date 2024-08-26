@@ -21,9 +21,11 @@ class StaticJsonEditor : public QWidget
 {
     Q_OBJECT
     json _desc;
+    bool _isNull = false;
+    QWidget* _ed = nullptr;
 
 public:
-    explicit StaticJsonEditor(const json& nvd, QWidget* parent = nullptr);
+    explicit StaticJsonEditor(const json& desc, QWidget* parent = nullptr);
     ~StaticJsonEditor() override;
 
 // protected:
@@ -31,9 +33,14 @@ public:
 //
 // public:
     [[nodiscard]] json value() const;
+    void setupEditor(const json& value);
 
 private:
     Ui::StaticJsonEditor* ui;
+
+private slots:
+    void setNull(bool null);
+    void setDefault();
 
 // signals:
     // void editingFinished(const nlohmann::json& value);

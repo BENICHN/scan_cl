@@ -11,10 +11,46 @@
 #include "../data/ScanOptionsModel.h"
 #include "../widgets/ImageViewerWidget.h"
 
+ScanButtonPanel defaultPanel()
+{
+    return {
+        {
+            "Mode", {
+                {"Bitonal", true, true, false, Qt::Key_B},
+                {"Nuances de gris", true, false, false, Qt::Key_G},
+                {"Couelur", true, false, false, Qt::Key_C},
+            }
+        },
+        {
+            "Alignement(H)", {
+                {"Gauche", true, true, false, Qt::Key_H, Qt::Key_L},
+                {"Centre", true, false, false, Qt::Key_H, Qt::Key_C},
+                {"Droite", true, false, false, Qt::Key_H, Qt::Key_R},
+            }
+        },
+        {
+            "Alignement(V)", {
+                {"Haut", true, true, false, Qt::Key_V, Qt::Key_T},
+                {"En-tête", true, false, false, Qt::Key_V, Qt::Key_H},
+                {"Centre", true, false, false, Qt::Key_V, Qt::Key_T},
+                {"Bas", true, false, false, Qt::Key_V, Qt::Key_B},
+            }
+        },
+        {
+            "Divers", {
+                {"Retourner", true, false, true, Qt::Key_F},
+                {"Marquer", true, false, true, Qt::Key_M},
+                {"Refaire", false, false, false, Qt::Key_Delete},
+            }
+        },
+    };
+}
+
 ScanWidget::ScanWidget(QWidget* parent) :
     QWidget(parent), ui(new Ui::ScanWidget)
 {
     ui->setupUi(this);
+    ui->stopButton->hide();
     connect(&app().scanner(), &Scanner::devicesFound, [=] { updateDevices(); });
     connect(ui->devList, &QComboBox::currentIndexChanged, [=](int i)
     {
@@ -36,18 +72,11 @@ ScanWidget::ScanWidget(QWidget* parent) :
     });
     connect(ui->playBtn, &QPushButton::clicked, [=]
     {
-        ui->playBtn->setDisabled(true);
-        app().scanner().startScan().then([=](const auto& sta)
-        {
-            if (sta)
-            {
-                updatePixmapLoop();
-            }
-            else
-            {
-                ui->playBtn->setEnabled(true);
-            }
-        });
+        startScanning();
+    });
+    connect(ui->stopButton, &QPushButton::clicked, [=]
+    {
+        stopScanning();
     });
     connect(&app().scanner(), &Scanner::pageScanned, [=]
     {
@@ -70,6 +99,9 @@ ScanWidget::ScanWidget(QWidget* parent) :
     ui->opts->setItemDelegate(new StaticJsonDelegate(ui->opts));
     ui->opts->header()->setSectionResizeMode(1, QHeaderView::Stretch);
     ui->opts->expandAll();
+    const auto panel = defaultPanel();
+    ui->rSB->setPanel(panel);
+    ui->lSB->setPanel(panel);
     updateDevices();
 }
 
@@ -95,11 +127,13 @@ void ScanWidget::updateDevices()
 //     // });
 // }
 
-void ScanWidget::updatePixmap()
+bool ScanWidget::updatePixmap(const char* savingPath)
 {
     auto pix = app().scanner().generateCurrentPixmap();
     // addCropLines(pix);
-    ui->rSB->iv().setPixmap(pix);
+    ui->rIV->setPixmap(pix);
+    if (savingPath) return pix.save(savingPath);
+    return true;
 }
 
 Task<> ScanWidget::updatePixmapLoop()
@@ -112,9 +146,115 @@ Task<> ScanWidget::updatePixmapLoop()
     }
 }
 
+void ScanWidget::setAuxVisible(bool visible)
+{
+    const auto l = layout();
+    for (int i = 0; i < l->count() - 1; ++i)
+    {
+        const auto ly = l->itemAt(i)->layout();
+        for (int i = 0; i < ly->count(); ++i)
+        {
+            const auto it = ly->itemAt(i);
+            if (it->widget())
+            {
+                it->widget()->setVisible(visible);
+            }
+        }
+    }
+    ui->stopButton->setHidden(visible);
+}
+
+void ScanWidget::startScanning()
+{
+    if (!_scanning)
+    {
+        _scanning = true;
+        setAuxVisible(false);
+        scanLoop();
+    }
+}
+
+void ScanWidget::stopScanning()
+{
+    _scanning = false;
+    app().scanner().stopScan();
+}
+
+Task<> ScanWidget::scanLoop()
+{
+    auto& book = app().book();
+    auto& scanner = app().scanner();
+
+    bool scanningColor = false;
+    string imagePath;
+    string imageColorPath;
+
+    while (_scanning)
+    {
+        if (!scanningColor) // indique une nouvelle page
+        {
+            imagePath = book.getNewScanPath();
+            auto path = stf::path(imagePath);
+            imageColorPath = path.parent_path() / (path.stem().string() + "-color" + path.extension().string());
+        }
+
+        const auto sta = co_await scanner.startScan();
+        if (!sta)
+        {
+            std::remove(imagePath.c_str());
+            std::remove(imageColorPath.c_str());
+            stopScanning();
+            break;
+        }
+        while (scanner.scanning())
+        {
+            updatePixmap();
+            co_await delay(200);
+        }
+        if (!_scanning || scanner.imageEmpty())
+        {
+            continue;
+        }
+        const auto sclr = !ui->rSB->isChecked("Bitonal");
+        if (scanningColor && sclr)
+        {
+            if (!updatePixmap(imageColorPath.c_str()))
+            {
+                std::remove(imagePath.c_str());
+                std::remove(imageColorPath.c_str());
+                stopScanning();
+                break;
+            }
+        }
+        if (!scanningColor)
+        {
+            if (!updatePixmap(imagePath.c_str()))
+            {
+                std::remove(imagePath.c_str());
+                std::remove(imageColorPath.c_str());
+                stopScanning();
+                break;
+            }
+        }
+
+        if (scanningColor || !sclr) // indique prochainement une nouvelle page
+        {
+            if (!ui->scanMultBox->isChecked())
+            {
+                stopScanning();
+                break;
+            }
+        }
+        co_await delay(ui->delayBox->value() * 1000);
+        scanningColor = !scanningColor && sclr;
+    }
+    setAuxVisible(true);
+    co_return;
+}
+
 void ScanWidget::keyPressEvent(QKeyEvent* event)
 {
-    QApplication::sendEvent(ui->rSB, event);
+    ui->rSB->processKey(static_cast<Qt::Key>(event->key()));
     // QWidget::keyPressEvent(event^);
 }
 

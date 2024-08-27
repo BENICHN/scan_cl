@@ -10,28 +10,38 @@
 
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class ScanWidget; }
+
+namespace Ui
+{
+    class ScanWidget;
+}
+
 QT_END_NAMESPACE
 
-class ScanWidget : public QWidget {
-Q_OBJECT
+class ScanWidget : public QWidget
+{
+    Q_OBJECT
+    bool _scanning;
 
 public:
-    explicit ScanWidget(QWidget *parent = nullptr);
+    explicit ScanWidget(QWidget* parent = nullptr);
     ~ScanWidget() override;
 
 private:
     void updateDevices();
     // Task<> updateOptions();
-    void updatePixmap();
+    bool updatePixmap(const char* savingPath = nullptr);
     Task<> updatePixmapLoop();
 
-protected:
-void keyPressEvent(QKeyEvent* event) override;
+    void setAuxVisible(bool visible);
+    void startScanning();
+    void stopScanning();
+    Task<> scanLoop();
 
-private:
-// void addCropLines(QPixmap& pix);
-    Ui::ScanWidget *ui;
+    void keyPressEvent(QKeyEvent* event) override;
+
+    // void addCropLines(QPixmap& pix);
+    Ui::ScanWidget* ui;
 };
 
 

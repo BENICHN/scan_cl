@@ -168,29 +168,63 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_7">
+    <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,0,0">
      <item>
-      <widget class="PageNavWidget" name="widget" native="true">
-       <property name="maximumSize">
-        <size>
-         <width>192</width>
-         <height>16777215</height>
-        </size>
-       </property>
-      </widget>
+      <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,1">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QPushButton" name="stopButton">
+           <property name="minimumSize">
+            <size>
+             <width>32</width>
+             <height>32</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>32</width>
+             <height>32</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="PageNavWidget" name="widget" native="true">
+         <property name="maximumSize">
+          <size>
+           <width>192</width>
+           <height>16777215</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
      <item>
-      <widget class="QLabel" name="lLab">
-       <property name="text">
-        <string>(img)</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
+      <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,0">
+       <item>
+        <widget class="ImageViewerWidget" name="lIV" native="true"/>
+       </item>
+       <item>
+        <widget class="ScanButtonsWidget" name="lSB" native="true"/>
+       </item>
+      </layout>
      </item>
      <item>
-      <widget class="ScanButtons" name="rSB" native="true"/>
+      <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0">
+       <item>
+        <widget class="ImageViewerWidget" name="rIV" native="true"/>
+       </item>
+       <item>
+        <widget class="ScanButtonsWidget" name="rSB" native="true"/>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
@@ -204,9 +238,15 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ScanButtons</class>
+   <class>ScanButtonsWidget</class>
    <extends>QWidget</extends>
-   <header>../../../src/widgets/ScanButtons.h</header>
+   <header>../../../src/widgets/ScanButtonsWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ImageViewerWidget</class>
+   <extends>QWidget</extends>
+   <header>../../../src/widgets/ImageViewerWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

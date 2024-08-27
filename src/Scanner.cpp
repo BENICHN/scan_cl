@@ -78,7 +78,7 @@ Task<SANEOpt<>> Scanner::setCurrentDevice(const int i)
 
 Task<> Scanner::exit()
 {
-    co_await stopScan();
+    stopScan();
     co_await closeCurrentDevice();
     _init = false;
     co_await QtConcurrent::run([]
@@ -135,9 +135,13 @@ SANEOptionDescriptor::SANEOptionDescriptor(const SANE_Option_Descriptor* p):
     cap(p->cap),
     constraint_type(p->constraint_type),
     constraint(
-        constraint_type == SANE_CONSTRAINT_RANGE ? SANEConstraint{*p->constraint.range} :
-            constraint_type == SANE_CONSTRAINT_WORD_LIST ? SANEConstraint{vector<SANE_Word>()} :
-            constraint_type == SANE_CONSTRAINT_STRING_LIST ? SANEConstraint{vector<string>()} : nullopt
+        constraint_type == SANE_CONSTRAINT_RANGE
+            ? SANEConstraint{*p->constraint.range}
+            : constraint_type == SANE_CONSTRAINT_WORD_LIST
+            ? SANEConstraint{vector<SANE_Word>()}
+            : constraint_type == SANE_CONSTRAINT_STRING_LIST
+            ? SANEConstraint{vector<string>()}
+            : nullopt
     )
 {
     switch (constraint_type)
@@ -389,6 +393,8 @@ Task<SANEOpt<>> Scanner::startScan()
             _currentImage = QImage(reinterpret_cast<uchar*>(_currentBuffer.data()), _currentParameters.pixels_per_line,
                                    _currentParameters.lines, _currentParameters.bytes_per_line,
                                    toQFormat(_currentParameters));
+            _imageEmpty = true;
+            _pageCanceled = false;
             _stream = ospanstream(span(_currentBuffer.data(), sz));
             readLoop();
         }
@@ -397,20 +403,23 @@ Task<SANEOpt<>> Scanner::startScan()
     co_return sta;
 }
 
-Task<SANEOpt<>> Scanner::stopScan()
+SANEOpt<> Scanner::stopScan()
 {
-    if (!_init || !deviceSelected() || !_scanning) co_return SANE_STATUS_UNSUPPORTED;
-    co_await QtConcurrent::run([=]
-    {
-        sane_cancel(_currentDeviceHandle);
-    });
-    co_return SANE_STATUS_GOOD;
+    if (!_init || !deviceSelected() || !_scanning) return SANE_STATUS_UNSUPPORTED;
+    _requestStopScan = true;
+    // co_await QtConcurrent::run([=]
+    // {
+    //     sane_cancel(_currentDeviceHandle);
+    // });
+    return SANE_STATUS_GOOD;
 }
 
 SANEOpt<> Scanner::clearCurrentImage()
 {
     if (_scanning) return SANE_STATUS_UNSUPPORTED;
     _currentImage = {};
+    _imageEmpty = true;
+    _pageCanceled = false;
     _currentBuffer = {};
     return SANE_STATUS_GOOD;
 }
@@ -428,17 +437,24 @@ Task<> Scanner::readLoop()
             {
                 return sane_read(_currentDeviceHandle, buffer, BUFFER_SIZE, &len);
             });
-            if (sta != SANE_STATUS_GOOD)
+            if (_requestStopScan || sta != SANE_STATUS_GOOD)
             {
+                if (_requestStopScan)
+                {
+                    _pageCanceled = true;
+                    _requestStopScan = false;
+                }
                 _scanning = false;
                 _stream.flush();
-                co_await QtConcurrent::run([this]
-                {
-                    return _currentImage.save(app().book().getNewScanPath().c_str());
-                }); // ! success
+                // co_await QtConcurrent::run([this]
+                // {
+                //     return _currentImage.save(app().book().getNewScanPath().c_str());
+                // }); // ! success
+                sane_cancel(_currentDeviceHandle);
                 emit pageScanned();
                 co_return;
             }
+            if (_imageEmpty && len > 0) { _imageEmpty = false; }
             _stream.write(buf, len);
         }
         while (len > 0);

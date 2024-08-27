@@ -35,7 +35,7 @@ public:
     auto&& value(this Self&& self)
     {
         if (!self.isOk()) throw runtime_error("attempting to access value of a non ok SANEOpt");
-        return get<0>(self._data);
+        return get<0>(std::forward<Self>(self)._data);
     }
 
     [[nodiscard]] SANE_Status status() const
@@ -122,9 +122,9 @@ struct SANEOptionDescriptor
     using SANEConstraint = optional<variant<vector<string>, vector<SANE_Word>, SANE_Range>>;
 
     SANEConstraint constraint;
-    template<typename Self> auto&& constraintStringList(this Self&& self) { return get<0>(self.constraint.value()); }
-    template<typename Self> auto&& constraintWordList(this Self&& self) { return get<1>(self.constraint.value()); }
-    template<typename Self> auto&& constraintRange(this Self&& self) { return get<2>(self.constraint.value()); }
+    template<typename Self> auto&& constraintStringList(this Self&& self) { return get<0>(std::forward<Self>(self).constraint.value()); }
+    template<typename Self> auto&& constraintWordList(this Self&& self) { return get<1>(std::forward<Self>(self).constraint.value()); }
+    template<typename Self> auto&& constraintRange(this Self&& self) { return get<2>(std::forward<Self>(self).constraint.value()); }
 
     explicit SANEOptionDescriptor(const SANE_Option_Descriptor* p);
 };
@@ -154,6 +154,9 @@ class Scanner final : public QObject
     vector<char> _currentBuffer;
     QImage _currentImage;
     ospanstream _stream;
+    bool _imageEmpty = true;
+    bool _pageCanceled = false;
+    bool _requestStopScan = false;
 
 public:
     explicit Scanner(QObject* parent = nullptr);
@@ -166,6 +169,8 @@ public:
 
     [[nodiscard]] bool initialized() const { return _init; }
     [[nodiscard]] bool scanning() const { return _scanning; }
+    [[nodiscard]] bool imageEmpty() const { return _imageEmpty; }
+    [[nodiscard]] bool pageCanceled() const { return _pageCanceled; }
     [[nodiscard]] bool deviceSelected() const { return _currentDevice; }
     [[nodiscard]] const vector<SANEDevice>& devices() const { return _devices; }
     [[nodiscard]] const SANEDevice* currentDevice() const { return _currentDevice; }
@@ -188,7 +193,7 @@ public:
     Task<> exit();
 
     Task<SANEOpt<>> startScan();
-    Task<SANEOpt<>> stopScan();
+    SANEOpt<> stopScan();
     SANEOpt<> clearCurrentImage();
 
     static constexpr int BUFFER_SIZE = 1048576;

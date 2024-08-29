@@ -122,9 +122,15 @@ struct SANEOptionDescriptor
     using SANEConstraint = optional<variant<vector<string>, vector<SANE_Word>, SANE_Range>>;
 
     SANEConstraint constraint;
-    template<typename Self> auto&& constraintStringList(this Self&& self) { return get<0>(std::forward<Self>(self).constraint.value()); }
-    template<typename Self> auto&& constraintWordList(this Self&& self) { return get<1>(std::forward<Self>(self).constraint.value()); }
-    template<typename Self> auto&& constraintRange(this Self&& self) { return get<2>(std::forward<Self>(self).constraint.value()); }
+
+    template <typename Self>
+    auto&& constraintStringList(this Self&& self) { return get<0>(std::forward<Self>(self).constraint.value()); }
+
+    template <typename Self>
+    auto&& constraintWordList(this Self&& self) { return get<1>(std::forward<Self>(self).constraint.value()); }
+
+    template <typename Self>
+    auto&& constraintRange(this Self&& self) { return get<2>(std::forward<Self>(self).constraint.value()); }
 
     explicit SANEOptionDescriptor(const SANE_Option_Descriptor* p);
 };
@@ -146,7 +152,7 @@ class Scanner final : public QObject
     bool _init = false;
     SANE_Int _version = -1;
     vector<SANEDevice> _devices;
-    const SANEDevice* _currentDevice = nullptr;
+    optional<string> _currentDeviceName = nullopt;
     SANE_Handle _currentDeviceHandle = nullptr;
     vector<SANEOptionDescriptor> _currentOptions;
     SANE_Parameters _currentParameters;
@@ -157,8 +163,10 @@ class Scanner final : public QObject
     bool _imageEmpty = true;
     bool _pageCanceled = false;
     bool _requestStopScan = false;
+    bool _isChangingDevice = false;
 
 public:
+
     explicit Scanner(QObject* parent = nullptr);
 
     [[nodiscard]] optional<SANE_Int> version() const
@@ -170,10 +178,11 @@ public:
     [[nodiscard]] bool initialized() const { return _init; }
     [[nodiscard]] bool scanning() const { return _scanning; }
     [[nodiscard]] bool imageEmpty() const { return _imageEmpty; }
+    [[nodiscard]] bool isChangingDevice() const { return _isChangingDevice; }
     [[nodiscard]] bool pageCanceled() const { return _pageCanceled; }
-    [[nodiscard]] bool deviceSelected() const { return _currentDevice; }
+    [[nodiscard]] bool deviceSelected() const { return _currentDeviceName.has_value(); }
     [[nodiscard]] const vector<SANEDevice>& devices() const { return _devices; }
-    [[nodiscard]] const SANEDevice* currentDevice() const { return _currentDevice; }
+    [[nodiscard]] const optional<string>& currentDeviceName() const { return _currentDeviceName; }
     [[nodiscard]] const vector<SANEOptionDescriptor>& currentOptions() const { return _currentOptions; }
     [[nodiscard]] QPixmap generateCurrentPixmap() const;
 
@@ -182,13 +191,15 @@ public:
         return deviceSelected() ? &_currentParameters : nullptr;
     }
 
-    [[nodiscard]] Task<SANEOpt<json>> getOptionValueAt(int i) const;
-    [[nodiscard]] Task<SANEOpt<json>> getOptionsValues() const;
-    SANEOpt<SANE_Info> setOptionValueAt(int i, const json& value); // update les options sans attendre le resultat
+    [[nodiscard]] SANEOpt<json> getOptionValueAt(int i) const;
+    [[nodiscard]] SANEOpt<json> getOptionsValues() const;
+    SANEOpt<SANE_Info> setOptionValueAt(int i, const json& value, bool update = true);
+    // update les options sans attendre le resultat
+    SANEOpt<SANE_Info> setOptionValues(json values, bool update = true); // update les options sans attendre le resultat
 
     Task<SANEOpt<>> init();
     Task<SANEOpt<>> updateDevices();
-    Task<SANEOpt<>> setCurrentDevice(const SANEDevice* dev);
+    Task<SANEOpt<>> setCurrentDevice(const optional<string>& name);
     Task<SANEOpt<>> setCurrentDevice(int i);
     Task<> exit();
 
@@ -199,17 +210,20 @@ public:
     static constexpr int BUFFER_SIZE = 1048576;
 
 private:
+    void setIsChangingDevice(bool value);
     Task<SANEOpt<>> updateParameters();
     Task<SANEOpt<>> updateOptions();
+    // SANEOpt<> updateActiveOptions() const;
     Task<SANEOpt<>> closeCurrentDevice();
     Task<> readLoop();
 
 signals:
     void pageScanned();
     void devicesFound(const vector<SANEDevice>& newValue);
-    void currentDeviceChanged(const SANEDevice* newValue);
+    void currentDeviceChanged(const optional<std::string>& newValue);
     void currentOptionsChanged(const vector<SANEOptionDescriptor>& newValue);
     void currentParametersChanged(const SANE_Parameters* newValue);
+    void isChangingDeviceChanged(bool newValue);
 };
 
 

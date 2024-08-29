@@ -20,7 +20,7 @@ public:
     void setPanel(const ScanButtonPanel& panel);
     explicit ScanButtonsWidget(QWidget* parent);
     void processKey(Qt::Key key);
-    bool isChecked(const string& name) const;
+    [[nodiscard]] bool isChecked(const string& groupName, const string& name) const;
 
 private:
     void updateButtons();

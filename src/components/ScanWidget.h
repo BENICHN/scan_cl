@@ -22,6 +22,7 @@ class ScanWidget : public QWidget
 {
     Q_OBJECT
     bool _scanning;
+    bool _canUpdateDevice = true;
 
 public:
     explicit ScanWidget(QWidget* parent = nullptr);
@@ -29,6 +30,8 @@ public:
 
 private:
     void updateDevices();
+    void updateDevListEnabled();
+    void updateDevList();
     // Task<> updateOptions();
     bool updatePixmap(const char* savingPath = nullptr);
     Task<> updatePixmapLoop();

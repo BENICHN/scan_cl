@@ -4,38 +4,93 @@
 
 #include "ScanOptionsModel.h"
 
-#include "../app.h"
+#include <magic_enum.hpp>
 
-json ScanOptionsModel::createJson() const
+#include "../app.h"
+#include "../utils.h"
+
+void ScanOptionsModel::setMode(PageColorMode mode)
 {
-    return waitFor(app().scanner().getOptionsValues().then([](const auto& res)
-    {
-        return res ? res.value() : json{};
-    })); // ! blocking
+    _mode = mode;
+    resetJson();
 }
 
-bool ScanOptionsModel::editJsonProperty(const JsonStructure::path_t& path, const json& value) const
+void ScanOptionsModel::createJson() const
 {
-    const auto& optName = path.back();
+    // cout << "[" << magic_enum::enum_name(_mode).data() << ":uj| ";
+    auto& settings = app().appSettings();
+    if (!app().scanner().currentDeviceName().has_value())
+    {
+        StaticJsonModel::createJson();
+        StaticJsonModel::createJsonPlaceholder();
+        // cout << " |uj]\n";
+        return;
+    }
     auto& scanner = app().scanner();
+    const auto jc = settings.getScanOptions(_mode);
+    auto jcr = jc;
+    if (_mode != PT_BLACK)
+    {
+        updateNewKeys(jcr, settings.getScanOptions(PT_BLACK));
+    }
+    scanner.setOptionValues(jcr);
+    const auto sta = scanner.getOptionsValues();
+    auto ja = sta ? sta.value() : json::object();
+    if (_mode != PT_BLACK)
+    {
+        setJsonPlaceholder(ja);
+        nullifyKeys(ja, jc);
+    }
+    else
+    {
+        StaticJsonModel::createJsonPlaceholder();
+    }
+    settings.setScanOptions(_mode, ja);
+    setJson(ja);
+    // cout << " |uj]\n";
+}
+
+bool ScanOptionsModel::beforeEditJsonProperty(const JsonStructure::path_t& path, const json& value) const
+{
+    // cout << "[" << magic_enum::enum_name(_mode).data() << ":bef| ";
+    auto& scanner = app().scanner();
+    const auto& optName = path.back();
     const auto& opts = scanner.currentOptions();
     const auto it = str::find(opts, optName, [](const auto& desc) { return desc.title; });
     if (it == opts.end()) return false;
-    const auto sta = scanner.setOptionValueAt(it - opts.begin(), value);
+    const auto sta = scanner.setOptionValueAt(it - opts.begin(), value.is_null() ? placeholder().at(path) : value);
     // ! info ignored
+    // cout << " |bef]\n";
     return sta;
 }
 
-json ScanOptionsModel::createJsonDescriptor(const json& j) const
+void ScanOptionsModel::afterEditJsonProperty(const JsonStructure::path_t& path, const json& value) const
 {
-    const auto& opts = app().scanner().currentOptions();
+    // cout << "[" << magic_enum::enum_name(_mode).data() << ":aft| ";
+    app().appSettings().setScanOptions(_mode, jSON());
+    // cout << " |aft]\n";
+}
+
+void ScanOptionsModel::createJsonPlaceholder() const
+{
+}
+
+void ScanOptionsModel::createJsonDescriptor() const
+{
+    const auto& scanner = app().scanner();
+    if (!scanner.currentDeviceName().has_value())
+    {
+        StaticJsonModel::createJsonDescriptor();
+        return;
+    }
+    const auto& opts = scanner.currentOptions();
     json res;
     for (int i = 0; i < opts.size(); ++i)
     {
         if (i == 0) continue; // skip "number of options"
         const auto& opt = opts[i];
         json j{
-            {"nullable", false},
+            {"nullable", _mode != PT_BLACK},
             {"name", opt.title},
         };
         switch (opt.type)
@@ -115,13 +170,36 @@ json ScanOptionsModel::createJsonDescriptor(const json& j) const
         j["active"] = SANE_OPTION_IS_ACTIVE(opt.cap) == SANE_TRUE;
         res[opt.title] = j;
     }
-    return res;
+    setJsonDescriptor(res);
 }
 
 ScanOptionsModel::ScanOptionsModel(QObject* parent) : StaticJsonModel(parent)
 {
-    connect(&app().scanner(), &Scanner::currentOptionsChanged, [=]
+    connect(&app().scanner(), &Scanner::currentDeviceChanged, [=]
     {
         resetJson();
     });
+    connect(&app().appSettings(), &AppSettings::scanOptionsChanged, [=](const auto&, auto mode)
+    {
+        if (initialized() && _mode != PT_BLACK && mode == PT_BLACK)
+        {
+            updatePlaceholder();
+        }
+    });
+}
+
+void ScanOptionsModel::updatePlaceholder()
+{
+    // cout << "[" << magic_enum::enum_name(_mode).data() << ":up| ";
+    auto& ph = placeholder();
+    const auto& opts = app().appSettings().getScanOptions(PT_BLACK);
+    for (const auto& kv : opts.items())
+    {
+        if (ph.contains(kv.key()))
+        {
+            ph[kv.key()] = kv.value(); // ! (si nouvelles entrees)
+        }
+    }
+    endResetModel();
+    // cout << " |up]\n";
 }

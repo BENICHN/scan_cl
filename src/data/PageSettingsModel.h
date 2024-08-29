@@ -21,9 +21,10 @@ public:
     void setPageId(int pageId);
 
 protected:
-    [[nodiscard]] json createJson() const override;
-    bool editJsonProperty(const JsonStructure::path_t& path, const json& value) const override;
-    [[nodiscard]] json createJsonDescriptor(const json& j) const override;
+    void createJsonPlaceholder() const override;
+    void createJson() const override;
+    bool beforeEditJsonProperty(const JsonStructure::path_t& path, const json& value) const override;
+    void createJsonDescriptor() const override;
 };
 
 

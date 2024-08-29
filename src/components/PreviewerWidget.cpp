@@ -9,6 +9,12 @@
 #include "../app.h"
 
 
+void PreviewerWidget::setEditable(const bool editable)
+{
+    _editable = editable;
+    updateImageAndRect(false, true);
+}
+
 PreviewerWidget::PreviewerWidget(QWidget* parent) :
     QWidget(parent), ui(new Ui::PreviewerWidget)
 {
@@ -126,17 +132,24 @@ void PreviewerWidget::updateImageAndRect(const bool updateImage, const bool upda
         }
         if (updateRect)
         {
-            switch (settings.selectionType.value())
+            if (_editable)
             {
-            case SR_NONE:
+                switch (settings.selectionType.value())
+                {
+                case SR_NONE:
+                    ui->iv->setSRDisabled();
+                    break;
+                case SR_RECT:
+                    ui->iv->setSRRect(settings.selection);
+                    break;
+                case SR_PICKER:
+                    ui->iv->setSRPicker(get<vector<PickerElement>>(settings.selection.value()));
+                    break;
+                }
+            }
+            else
+            {
                 ui->iv->setSRDisabled();
-                break;
-            case SR_RECT:
-                ui->iv->setSRRect(settings.selection);
-                break;
-            case SR_PICKER:
-                ui->iv->setSRPicker(get<vector<PickerElement>>(settings.selection.value()));
-                break;
             }
         }
     }

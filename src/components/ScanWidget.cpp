@@ -46,29 +46,64 @@ ScanButtonPanel defaultPanel()
     };
 }
 
+PageColorMode getColorModeFromSB(ScanButtonsWidget* sb)
+{
+    return sb->isChecked("Mode", "Bitonal") ? PT_BLACK : sb->isChecked("Mode", "Nuances de gris") ? PT_GRAY : PT_COLOR;
+}
+
+json getCropSettingsFromSB(ScanButtonsWidget* sb)
+{
+    json res = json::object();
+    res["flip"] = sb->isChecked("Divers", "Retourner");
+    return res;
+}
+
+json getFinalSettingsFromSB(ScanButtonsWidget* sb)
+{
+    json res = json::object();
+    res["alignmentH"] = sb->isChecked("Alignement(H)", "Gauche")
+                            ? "l"
+                            : sb->isChecked("Alignement(H)", "Centre")
+                            ? "c"
+                            : "r";
+    res["alignmentV"] = sb->isChecked("Alignement(V)", "Haut")
+                            ? "t"
+                            : sb->isChecked("Alignement(V)", "En-tête")
+                            ? "h"
+                            : sb->isChecked("Alignement(V)", "Centre")
+                            ? "c"
+                            : "b";
+    return res;
+}
+
 ScanWidget::ScanWidget(QWidget* parent) :
     QWidget(parent), ui(new Ui::ScanWidget)
 {
     ui->setupUi(this);
     ui->stopButton->hide();
+    ui->lIV->setEditable(false);
     connect(&app().scanner(), &Scanner::devicesFound, [=] { updateDevices(); });
+    connect(&app().scanner(), &Scanner::currentDeviceChanged, [=]
+    {
+        updateDevList();
+        updatePixmap();
+    });
+    connect(&app().scanner(), &Scanner::isChangingDeviceChanged, [=]
+    {
+        updateDevListEnabled();
+    });
     connect(ui->devList, &QComboBox::currentIndexChanged, [=](int i)
     {
+        if (!_canUpdateDevice) return;
         auto& scanner = app().scanner();
-        if (i <= 0 && !scanner.deviceSelected()) return;
-        ui->devList->setDisabled(true);
-        scanner.setCurrentDevice(i - 1).then([=](const auto& sta)
-        {
-            if (!sta)
-            {
-                ui->devList->setCurrentIndex(0);
-            }
-            // updateOptions().then([=]
-            // {
-            updatePixmap();
-            ui->devList->setEnabled(true);
-            // });
-        });
+        // if (i <= 0 && !scanner.deviceSelected()) return;
+        // if (scanner.currentDeviceName() == ui->devList->currentText().toStdString()) return;
+        scanner.setCurrentDevice(i - 1);;
+    });
+    connect(ui->pageNav->list()->selectionModel(), &QItemSelectionModel::selectionChanged, [=]
+    {
+        const int newId = uniqueSelectedId(ui->pageNav->list()->selectionModel());
+        ui->lIV->setPageId(newId);
     });
     connect(ui->playBtn, &QPushButton::clicked, [=]
     {
@@ -95,14 +130,34 @@ ScanWidget::ScanWidget(QWidget* parent) :
     // {
     //     updatePixmap();
     // });
-    ui->opts->setModel(new ScanOptionsModel(ui->opts));
+
+    const auto modelBw = new ScanOptionsModel(ui->opts);
+    modelBw->setMode(PT_BLACK);
+    ui->opts->setModel(modelBw);
     ui->opts->setItemDelegate(new StaticJsonDelegate(ui->opts));
     ui->opts->header()->setSectionResizeMode(1, QHeaderView::Stretch);
     ui->opts->expandAll();
+
+    const auto modelG = new ScanOptionsModel(ui->optsG);
+    modelG->setMode(PT_GRAY);
+    ui->optsG->setModel(modelG);
+    ui->optsG->setItemDelegate(new StaticJsonDelegate(ui->optsG));
+    ui->optsG->header()->setSectionResizeMode(1, QHeaderView::Stretch);
+    ui->optsG->expandAll();
+
+    const auto modelC = new ScanOptionsModel(ui->optsC);
+    modelC->setMode(PT_COLOR);
+    ui->optsC->setModel(modelC);
+    ui->optsC->setItemDelegate(new StaticJsonDelegate(ui->optsC));
+    ui->optsC->header()->setSectionResizeMode(1, QHeaderView::Stretch);
+    ui->optsC->expandAll();
+
     const auto panel = defaultPanel();
     ui->rSB->setPanel(panel);
-    ui->lSB->setPanel(panel);
+    // ui->lSB->setPanel(panel);
     updateDevices();
+    updateDevList();
+    updateDevListEnabled();
 }
 
 ScanWidget::~ScanWidget()
@@ -112,11 +167,27 @@ ScanWidget::~ScanWidget()
 
 void ScanWidget::updateDevices()
 {
+    _canUpdateDevice = false;
     ui->devList->clear();
     const auto& devs = app().scanner().devices();
     ui->devList->addItem("- Sélectionner un appareil -");
     ui->devList->addItems(devs | stv::transform([](const auto& dev) { return dev.name; }) | str::to<QStringList>());
     ui->devList->setCurrentIndex(0);
+    _canUpdateDevice = true;
+}
+
+void ScanWidget::updateDevListEnabled()
+{
+    ui->devList->setDisabled(app().scanner().isChangingDevice());
+}
+
+void ScanWidget::updateDevList()
+{
+    _canUpdateDevice = false;
+    const auto& name = app().scanner().currentDeviceName();
+    if (name.has_value()) ui->devList->setCurrentText(name->c_str());
+    else ui->devList->setCurrentIndex(0);
+    _canUpdateDevice = true;
 }
 
 // void ScanWidget::updateOptions()
@@ -186,23 +257,23 @@ Task<> ScanWidget::scanLoop()
     auto& scanner = app().scanner();
 
     bool scanningColor = false;
-    string imagePath;
-    string imageColorPath;
+    path imagePath;
+    path imageColorPath;
 
     while (_scanning)
     {
         if (!scanningColor) // indique une nouvelle page
         {
             imagePath = book.getNewScanPath();
-            auto path = stf::path(imagePath);
-            imageColorPath = path.parent_path() / (path.stem().string() + "-color" + path.extension().string());
+            imageColorPath = imagePath.parent_path() / (imagePath.stem().string() + "-color" + imagePath.extension().
+                string());
         }
 
         const auto sta = co_await scanner.startScan();
         if (!sta)
         {
-            std::remove(imagePath.c_str());
-            std::remove(imageColorPath.c_str());
+            remove(imagePath);
+            remove(imageColorPath);
             stopScanning();
             break;
         }
@@ -215,13 +286,14 @@ Task<> ScanWidget::scanLoop()
         {
             continue;
         }
-        const auto sclr = !ui->rSB->isChecked("Bitonal");
+        const auto mode = getColorModeFromSB(ui->rSB);
+        const auto sclr = mode != PT_BLACK;
         if (scanningColor && sclr)
         {
             if (!updatePixmap(imageColorPath.c_str()))
             {
-                std::remove(imagePath.c_str());
-                std::remove(imageColorPath.c_str());
+                remove(imagePath);
+                remove(imageColorPath);
                 stopScanning();
                 break;
             }
@@ -230,8 +302,8 @@ Task<> ScanWidget::scanLoop()
         {
             if (!updatePixmap(imagePath.c_str()))
             {
-                std::remove(imagePath.c_str());
-                std::remove(imageColorPath.c_str());
+                remove(imagePath);
+                remove(imageColorPath);
                 stopScanning();
                 break;
             }
@@ -239,6 +311,15 @@ Task<> ScanWidget::scanLoop()
 
         if (scanningColor || !sclr) // indique prochainement une nouvelle page
         {
+            auto page = Page{
+                std::rand(), mode, imagePath.filename(), sclr ? optional(imageColorPath.filename()) : nullopt, 1
+            };
+            page.croppingStep().settings.update(getCropSettingsFromSB(ui->rSB));
+            page.finalStep().settings.update(getFinalSettingsFromSB(ui->rSB));
+            book.insertPageBack(std::move(page));
+            ui->pageNav->selectLastPage();
+            scanner.clearCurrentImage();
+            updatePixmap();
             if (!ui->scanMultBox->isChecked())
             {
                 stopScanning();

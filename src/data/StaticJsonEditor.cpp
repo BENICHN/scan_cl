@@ -16,13 +16,14 @@
 #include "../imports/stdimports.h"
 
 
-StaticJsonEditor::StaticJsonEditor(const json& desc, QWidget* parent) :
+StaticJsonEditor::StaticJsonEditor(const json& pd, QWidget* parent) :
     QWidget(parent), ui(new Ui::StaticJsonEditor)
 {
     ui->setupUi(this);
-    _desc = desc;
+    _pd = pd;
 
-    if (_desc.at("nullable"))
+    const auto& desc = _pd["desc"];
+    if (desc.at("nullable"))
     {
         connect(ui->nullBtn, &QAbstractButton::toggled, this, &StaticJsonEditor::setNull);
     }
@@ -31,7 +32,7 @@ StaticJsonEditor::StaticJsonEditor(const json& desc, QWidget* parent) :
         ui->nullBtn->setHidden(true);
     }
 
-    if (_desc.contains("defaultValue"))
+    if (desc.contains("defaultValue"))
     {
         connect(ui->defaultBtn, &QAbstractButton::clicked, this, &StaticJsonEditor::setDefault);
     }
@@ -58,9 +59,10 @@ StaticJsonEditor::~StaticJsonEditor()
 
 json StaticJsonEditor::value() const
 {
-    const auto& type = _desc.at("type");
+    const auto& desc = _pd["desc"];
+    const auto& type = desc.at("type");
     if (_isNull) return nullptr;
-    if (_desc.contains("details") && _desc["details"].contains("choices"))
+    if (desc.contains("details") && desc["details"].contains("choices"))
     {
         const auto ed = qobject_cast<QComboBox*>(_ed);
         auto v = ed->currentText().toStdString();
@@ -102,7 +104,7 @@ void StaticJsonEditor::setupEditor(const json& value)
     const auto ly = qobject_cast<QHBoxLayout*>(layout());
     ly->removeWidget(_ed);
     delete _ed; // ! utile ?
-    const bool noval = value.is_object();
+    // const bool noval = value.is_object();
     _isNull = value.is_null();
     if (_isNull)
     {
@@ -113,8 +115,9 @@ void StaticJsonEditor::setupEditor(const json& value)
     }
     else
     {
-        const auto& type = _desc.at("type");
-        const auto details = _desc.contains("details") ? _desc["details"] : json{};
+        const auto& desc = _pd["desc"];
+        const auto& type = desc.at("type");
+        const auto details = desc.contains("details") ? desc["details"] : json{};
         if (details.contains("choices"))
         {
             const auto ed = new QComboBox(this);
@@ -127,7 +130,7 @@ void StaticJsonEditor::setupEditor(const json& value)
                             ? dumpValue(v) + details["unit"].get_ref<const json::string_t&>()
                             : dumpValue(v);
                 }) | str::to<QStringList>());
-            if (!noval)
+            // if (!noval)
             {
                 auto it = str::find(choices, value);
                 // qDebug() << _nvd.dump(2).c_str();
@@ -141,7 +144,7 @@ void StaticJsonEditor::setupEditor(const json& value)
         else if (type == "bool")
         {
             const auto ed = new QCheckBox(this);
-            if (!noval)
+            // if (!noval)
             {
                 ed->setChecked(value); // ! pas close apres
             }
@@ -154,7 +157,7 @@ void StaticJsonEditor::setupEditor(const json& value)
             ed->setMaximum(details.contains("max") ? details["max"].get<int>() : INT_MAX);
             if (details.contains("step")) ed->setSingleStep(details["step"]);
             if (details.contains("unit")) ed->setSuffix(details["unit"].get_ref<const json::string_t&>().c_str());
-            if (!noval)
+            // if (!noval)
             {
                 ed->setValue(value);
             }
@@ -167,7 +170,7 @@ void StaticJsonEditor::setupEditor(const json& value)
             ed->setMaximum(details.contains("max") ? details["max"].get<double>() : INFINITY);
             if (details.contains("step")) ed->setSingleStep(details["step"]);
             if (details.contains("unit")) ed->setSuffix(details["unit"].get_ref<const json::string_t&>().c_str());
-            if (!noval)
+            // if (!noval)
             {
                 ed->setValue(value);
             }
@@ -176,7 +179,7 @@ void StaticJsonEditor::setupEditor(const json& value)
         else if (type == "string")
         {
             const auto ed = new QPlainTextEdit(this);
-            if (!noval)
+            // if (!noval)
             {
                 ed->setPlainText(value.get_ref<const json::string_t&>().c_str());
             }
@@ -195,11 +198,12 @@ void StaticJsonEditor::setNull(const bool null)
     }
     else
     {
-        setupEditor(_desc.contains("defaultValue") ? _desc["defaultValue"] : json::object());
+        const auto& desc = _pd["desc"];
+        setupEditor(_pd.contains("placeholderValue") ? _pd["placeholderValue"] : desc.contains("defaultValue") ? desc["defaultValue"] : json::object());
     }
 }
 
 void StaticJsonEditor::setDefault()
 {
-    setupEditor(_desc.at("nullable"));
+    setupEditor(_pd["desc"].at("nullable")); // ! ?
 }

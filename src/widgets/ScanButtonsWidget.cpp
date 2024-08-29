@@ -42,8 +42,10 @@ void ScanButtonsWidget::processKey(Qt::Key key)
                     if (bd.secondaryKey == Qt::Key_Escape)
                     {
                         const auto btns = findChildren<ScanButton*>(Qt::FindDirectChildrenOnly);
-                        const auto btn = *str::find_if(btns, [&](const auto btn) { return btn->data().name == bd.name; });
-                        if (bd.alone) btn->toggle(); else btn->setChecked(true);
+                        const auto btn = *str::find_if(
+                            btns, [&](const auto btn) { return btn->data().name == bd.name; });
+                        if (bd.alone) btn->toggle();
+                        else btn->setChecked(true);
                         emit buttonChecked(bd);
                     }
                     else
@@ -59,7 +61,8 @@ void ScanButtonsWidget::processKey(Qt::Key key)
                 {
                     const auto btns = findChildren<ScanButton*>(Qt::FindDirectChildrenOnly);
                     const auto btn = *str::find_if(btns, [&](const auto btn) { return btn->data().name == bd.name; });
-                    if (bd.alone) btn->toggle(); else btn->setChecked(true);
+                    if (bd.alone) btn->toggle();
+                    else btn->setChecked(true);
                     emit buttonChecked(bd);
                     _heldKey = Qt::Key_Escape;
                     return;
@@ -70,22 +73,27 @@ void ScanButtonsWidget::processKey(Qt::Key key)
     _heldKey = Qt::Key_Escape;
 }
 
-bool ScanButtonsWidget::isChecked(const string& name) const
+bool ScanButtonsWidget::isChecked(const string& groupName, const string& name) const
 {
-    for (const auto btn : findChildren<ScanButton*>(Qt::FindDirectChildrenOnly))
+    const auto j = str::find_if(_panel, [&](const auto& gr) { return gr.name == groupName; }) - _panel.begin();
+    const auto gly = layout()->itemAt(j)->layout();
+    for (int i = 0; i < gly->count(); ++i)
     {
-        if (btn->data().name == name)
+        const auto& item = gly->itemAt(i);
+        const auto w = qobject_cast<ScanButton*>(item->widget());
+        if (w && w->data().name == name)
         {
-            return btn->isChecked();
+            return w->isChecked();
         }
     }
-    throw runtime_error("Aucun bouton dont le nom est : "+name);
+    throw runtime_error("Aucun bouton dans le groupe : " + groupName + " dont le nom est : " + name);
 }
 
 void ScanButtonsWidget::updateButtons()
 {
     const auto ly = qobject_cast<QHBoxLayout*>(layout());
-    while(!ly->isEmpty()) {
+    while (!ly->isEmpty())
+    {
         delete ly->takeAt(0);
     }
     for (const auto& coll : _panel)

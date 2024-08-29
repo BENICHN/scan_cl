@@ -39,7 +39,7 @@ int ImageViewerWidget::adjustPos(int L, int l, int x)
 
 bool ImageViewerWidget::isCurrentFt(const string& filename, const stf::file_time_type& time)
 {
-    return _ft.has_value() && _ft.value().filename == filename && _ft.value().lastWriteTime == time;
+    return _ft.has_value() && _ft->filename == filename && _ft->lastWriteTime == time;
 }
 
 bool ImageViewerWidget::isCurrentFt(const FilenameWithTimestamp& ft)
@@ -84,6 +84,11 @@ void ImageViewerWidget::zoomToLevel(const float level, const QPointF& p)
 
 Task<> ImageViewerWidget::setPixmap(const string& filename)
 {
+    if (!stf::exists(filename))
+    {
+        setPixmap(QPixmap());
+        co_return;
+    }
     const auto lwt = stf::last_write_time(filename);
     if (isCurrentFt(filename, lwt)) co_return;
     _ft = {

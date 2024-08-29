@@ -9,6 +9,7 @@
 #include "MainWindow.h"
 #include "Scanner.h"
 #include "works.h"
+#include "data/AppSettings.h"
 #include "data/book.h"
 
 class GlobalEventFilter final : public QObject
@@ -24,6 +25,7 @@ protected:
 class App final : public QApplication
 {
     Q_OBJECT
+    AppSettings _appSettings;
     Book _book;
     Works _works;
     Scanner _scanner;
@@ -33,14 +35,15 @@ class App final : public QApplication
 public:
     App(int &argc, char** argv);
 
-    static App* instance() { return dynamic_cast<App*>(QApplication::instance()); }
-    [[nodiscard]] Book& book() { return _book; }
-    [[nodiscard]] MainWindow& mainWindow() { return _mainWindow; }
-    [[nodiscard]] GlobalEventFilter& globalEventFilter() { return _eventFilter; }
-    [[nodiscard]] Works& works() { return _works; }
-    [[nodiscard]] Scanner& scanner() { return _scanner; }
+    static auto instance() { return dynamic_cast<App*>(QApplication::instance()); }
+    [[nodiscard]] auto& appSettings() { return _appSettings; }
+    [[nodiscard]] auto& book() { return _book; }
+    [[nodiscard]] auto& mainWindow() { return _mainWindow; }
+    [[nodiscard]] auto& globalEventFilter() { return _eventFilter; }
+    [[nodiscard]] auto& works() { return _works; }
+    [[nodiscard]] auto& scanner() { return _scanner; }
 };
 
-inline App& app() { return *App::instance(); }
+inline auto& app() { return *App::instance(); }
 
 #endif //APP_H

@@ -8,6 +8,7 @@
 #include "ui_ProcessFragment.h"
 
 #include "app.h"
+#include "utils.h"
 #include "components/ScanWidget.h"
 
 ProcessFragment::ProcessFragment(QWidget* parent) :
@@ -16,7 +17,7 @@ ProcessFragment::ProcessFragment(QWidget* parent) :
     ui->setupUi(this);
     connect(ui->pageNav->list()->selectionModel(), &QItemSelectionModel::selectionChanged, [=]
     {
-        const int newId = uniqueSelectedId();
+        const int newId = uniqueSelectedId(ui->pageNav->list()->selectionModel());
         ui->previewer->setPageId(newId);
         ui->timeline->setPageId(newId);
         ui->propsEditor->setSource(PropsSource(in_place_index<PTY_PAGE>, newId));
@@ -57,10 +58,4 @@ ProcessFragment::ProcessFragment(QWidget* parent) :
 ProcessFragment::~ProcessFragment()
 {
     delete ui;
-}
-
-int ProcessFragment::uniqueSelectedId() const
-{
-    auto idxs = ui->pageNav->list()->selectionModel()->selectedIndexes();
-    return idxs.size() == 1 ? app().book().ids().at(idxs[0].row()) : -1;
 }

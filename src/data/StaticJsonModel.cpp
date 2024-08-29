@@ -60,34 +60,60 @@ JsonStructure JsonStructure::fromJsonWithoutParents(const json& j, const path_t&
     }
 }
 
+void StaticJsonModel::afterEditJsonProperty(const JsonStructure::path_t& path, const json& value) const
+{
+}
+
 StaticJsonModel::StaticJsonModel(QObject* parent) : QAbstractItemModel(parent)
 {
 }
 
 json& StaticJsonModel::jSON() const
 {
-    if (!_json.has_value()) resetJsonInternal();
+    if (!initialized()) resetJsonInternal();
     return _json.value();
+}
+
+json& StaticJsonModel::placeholder() const
+{
+    if (!initialized()) resetJsonInternal();
+    return _jsonPlaceholder.value();
 }
 
 json& StaticJsonModel::descriptor() const
 {
-    if (!_json.has_value()) resetJsonInternal();
+    if (!initialized()) resetJsonInternal();
     return _jsonDescriptor.value();
 }
 
 JsonStructure& StaticJsonModel::structure() const
 {
-    if (!_json.has_value()) resetJsonInternal();
+    if (!initialized()) resetJsonInternal();
     return _jsonStructure.value();
 }
 
 void StaticJsonModel::resetJsonInternal() const
 {
-    _json = createJson();
-    _jsonDescriptor = createJsonDescriptor(_json);
+    ++_resetCounter;
+    _json = nullopt;
+    _jsonStructure = nullopt;
+    _jsonPlaceholder = nullopt;
+    _jsonDescriptor = nullopt;
+    createJson();
+    createJsonDescriptor();
+    createJsonPlaceholder();
     _jsonStructure = JsonStructure::fromJsonWithoutParents(_json);
     _jsonStructure->setParents();
+}
+
+bool StaticJsonModel::initialized() const
+{
+    return _json.has_value();
+}
+
+void StaticJsonModel::createJson() const
+{
+    setJson(json::object());
 }
 
 void StaticJsonModel::resetJson()
@@ -96,9 +122,14 @@ void StaticJsonModel::resetJson()
     endResetModel();
 }
 
-json StaticJsonModel::createJsonDescriptor(const json& j) const
+void StaticJsonModel::createJsonDescriptor() const
 {
-    return defaultDescriptor(j);
+    setJsonDescriptor(defaultDescriptor(_json));
+}
+
+void StaticJsonModel::createJsonPlaceholder() const
+{
+    setJsonPlaceholder(json::object());
 }
 
 QModelIndex StaticJsonModel::index(int row, int column, const QModelIndex& parent) const
@@ -158,7 +189,12 @@ QVariant StaticJsonModel::data(const QModelIndex& index, int role) const
             case 1:
                 {
                     if (js.isContainer) return "";
-                    const auto s = dumpValue(jSON().at(js.path));
+                    auto v = jSON().at(js.path);
+                    if (v.is_null() && placeholder().contains(js.path))
+                    {
+                        v = placeholder().at(js.path);
+                    }
+                    const auto s = dumpValue(v);
                     const auto& desc = descriptor().at(js.path);
                     if (desc.contains("details"))
                     {
@@ -184,11 +220,19 @@ QVariant StaticJsonModel::data(const QModelIndex& index, int role) const
             }
             return f;
         }
-        break;
     case Qt::SizeHintRole:
         return QSize{0, 24};
     // case Qt::BackgroundRole:
     //     return Color::br1;
+    case Qt::ForegroundRole:
+        {
+            if (index.column() == 1 && jSON().at(js.path).is_null())
+            {
+                return QColor(Qt::gray);
+            }
+            return QColor(Qt::black);
+        }
+        break;
     default:
         break;
     }
@@ -252,14 +296,17 @@ bool StaticJsonModel::setData(const QModelIndex& index, const QVariant& value, i
 {
     return setJsonData(index, qVariantToJson(value), role);
 }
+
 bool StaticJsonModel::setJsonData(const QModelIndex& index, const json& value, int role)
 {
-    auto path = static_cast<JsonStructure*>(index.internalPointer())->path; // pas ref pour si le path est détruit par l'appel à editJsonProprerty
+    const auto& path = static_cast<JsonStructure*>(index.internalPointer())->path;
+    const auto c = _resetCounter;
     // const auto t = jSON()[js.path].type();
     // if (js.path.empty()) return false;
-    if (editJsonProperty(path, value))
+    if (beforeEditJsonProperty(path, value) && c == _resetCounter)
     {
         jSON()[path] = value;
+        afterEditJsonProperty(path, value);
         return true;
     }
     return false;

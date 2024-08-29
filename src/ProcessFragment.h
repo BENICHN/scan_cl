@@ -20,7 +20,6 @@ public:
 
 private:
     Ui::ProcessFragment *ui;
-    [[nodiscard]] int uniqueSelectedId() const;
 };
 
 

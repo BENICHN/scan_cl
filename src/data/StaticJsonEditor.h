@@ -20,7 +20,7 @@ QT_END_NAMESPACE
 class StaticJsonEditor : public QWidget
 {
     Q_OBJECT
-    json _desc;
+    json _pd;
     bool _isNull = false;
     QWidget* _ed = nullptr;
 

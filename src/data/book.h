@@ -89,12 +89,47 @@ struct Page
 
     [[nodiscard]] PreviewerSettings defaultPreviewerSettings() const;
     [[nodiscard]] PageStatus status() const;
-    [[nodiscard]] const CroppingStep& croppingStep() const;
-    [[nodiscard]] const MergingStep& mergingStep() const;
-    [[nodiscard]] const CleaningStep& cleaningStep() const;
-    [[nodiscard]] const FinalStep& finalStep() const;
+    // [[nodiscard]] const CroppingStep& croppingStep() const;
+    // [[nodiscard]] const MergingStep& mergingStep() const;
+    // [[nodiscard]] const CleaningStep& cleaningStep() const;
+    // [[nodiscard]] const FinalStep& finalStep() const;
 
-    friend Page from_json(const json& j);
+    template <typename Self>
+    auto&& croppingStep(this Self&& self)
+    {
+        return *static_cast<CroppingStep*>(self.steps.at(0).get());
+    }
+
+    template <typename Self>
+    auto&& mergingStep(this Self&& self)
+    {
+        return *static_cast<MergingStep*>(self.steps.at(1).get());
+    }
+
+    template <typename Self>
+    auto&& cleaningStep(this Self&& self)
+    {
+        return *static_cast<CleaningStep*>(self.steps.at(2).get());
+    }
+
+    template <typename Self>
+    auto&& finalStep(this Self&& self)
+    {
+        return *static_cast<FinalStep*>(self.steps.at(3).get());
+    }
+
+    template <typename Self>
+    auto&& step(this Self&& self, const string& name)
+    {
+        const auto it = str::find(self.steps, name, [](const auto& st) { return st->name(); });
+        if (it != self.steps.end())
+        {
+            return **it;
+        }
+        throw runtime_error("No step named : " + name);
+    }
+
+    friend Page from_json(const json& j); // !! mettre dans une struct
     friend void to_json(json& j, const Page& page);
 };
 
@@ -158,6 +193,7 @@ public:
 
     // scan
     string scanDir() const;
+    string getNewScanFilename() const;
     string getNewScanPath() const;
 
     // mutations
@@ -176,8 +212,11 @@ public:
 signals:
     void choiceAccepted(int pageId, bool accepted);
     void pageStatusChanged(int pageId);
+    void pageListChanged();
 
+public:
     friend void to_json(json& j, const Book& book);
+
 private:
     void loadFromJson(const json& j);
 };

@@ -115,4 +115,10 @@ constexpr QRect fitIn(const QRect& src, const QRect& dest)
 
 QPainterPath roundRect(const QRect& rect, float radius);
 
+int uniqueSelectedId(const QItemSelectionModel* model);
+
+void updateNewKeys(json& src, const json& repl, bool updateNulls = true);
+void nullifyKeys(json& src, const json& repl);
+bool jsonIsContainer(const json& j);
+
 #endif //UTILS_H

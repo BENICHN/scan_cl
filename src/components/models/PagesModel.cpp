@@ -7,6 +7,10 @@
 
 PagesModel::PagesModel(QObject* parent) : QAbstractListModel(parent)
 {
+    connect(&app().book(), &Book::pageListChanged, [=]
+    {
+       endResetModel();
+    });
 }
 
 int PagesModel::rowCount(const QModelIndex& parent) const

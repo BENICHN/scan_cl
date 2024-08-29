@@ -7,6 +7,7 @@
 #include "PageNavWidget.h"
 
 #include "ui_PageNavWidget.h"
+#include "../app.h"
 #include "../data/book.h"
 #include "models/PagesDelegate.h"
 #include "models/PagesModel.h"
@@ -21,4 +22,16 @@ PageNavWidget::PageNavWidget(QWidget *parent) :
 
 PageNavWidget::~PageNavWidget() {
     delete ui;
+}
+
+void PageNavWidget::selectPageAt(int i)
+{
+    const auto idx = ui->list->model()->index(i, 0);
+    ui->list->setCurrentIndex(idx);
+    // ui->list->scrollTo(idx);
+}
+
+void PageNavWidget::selectLastPage()
+{
+    selectPageAt(app().book().ids().size()-1);
 }

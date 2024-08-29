@@ -4,6 +4,7 @@
 
 #include "PageSettingsModel.h"
 #include "../app.h"
+#include "../utils.h"
 
 PageSettingsModel::PageSettingsModel(int pageId, QObject* parent) : StaticJsonModel(parent), _pageId(pageId)
 {
@@ -22,26 +23,38 @@ void PageSettingsModel::setPageId(const int pageId)
     }
 }
 
-json PageSettingsModel::createJson() const
+void PageSettingsModel::createJsonPlaceholder() const
 {
-    if (_pageId == -1) return {};
-    ordered_json res = {};
-    for (const auto& step : app().book().page(_pageId).steps)
-    {
-        const auto rs = step->realSettings();
-        if (!rs.empty()) res[step->name()] = rs;
-    }
-    return res;
 }
 
-bool PageSettingsModel::editJsonProperty(const JsonStructure::path_t& path, const json& value) const
+void PageSettingsModel::createJson() const
+{
+    if (_pageId == -1)
+    {
+        StaticJsonModel::createJson();
+        StaticJsonModel::createJsonPlaceholder();
+    }
+    else
+    {
+        auto pl = app().book().globalSettings();
+        setJsonPlaceholder(pl);
+        for (const auto& kv : pl.items())
+        {
+            const auto& step = app().book().page(_pageId).step(kv.key());
+            nullifyKeys(pl[kv.key()], step.settings);
+        }
+        setJson(pl);
+    }
+}
+
+bool PageSettingsModel::beforeEditJsonProperty(const JsonStructure::path_t& path, const json& value) const
 {
     return false;
 }
 
-json PageSettingsModel::createJsonDescriptor(const json& j) const
+void PageSettingsModel::createJsonDescriptor() const
 {
-    return defaultDescriptor(j, {
-                                 {"nullable", true}
-                             });
+    setJsonDescriptor(defaultDescriptor(placeholder(), {
+                                            {"nullable", true}
+                                        }));
 }

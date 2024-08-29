@@ -21,8 +21,12 @@ class PreviewerWidget final : public QWidget
 {
     Q_OBJECT
     int _pageId = -1;
+    bool _editable = true;
 
 public:
+    [[nodiscard]] bool editable() const { return _editable; }
+    void setEditable(bool editable);
+
     explicit PreviewerWidget(QWidget* parent = nullptr);
     ~PreviewerWidget() override;
 

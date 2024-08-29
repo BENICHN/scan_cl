@@ -111,6 +111,8 @@ add_executable(scan
         src/widgets/ScanButton.h
         src/widgets/ScanButtonsWidget.cpp
         src/widgets/ScanButtonsWidget.h
+        src/data/AppSettings.cpp
+        src/data/AppSettings.h
 )
 target_link_libraries(scan
         Qt::Core

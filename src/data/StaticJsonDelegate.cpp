@@ -23,18 +23,22 @@ QSize StaticJsonDelegate::sizeHint(const QStyleOptionViewItem& option, const QMo
     return QStyledItemDelegate::sizeHint(option, index);
 }
 
-json getDesc(const QModelIndex& index)
+json getPD(const QModelIndex& index)
 {
     json res;
     const auto model = qobject_cast<const StaticJsonModel*>(index.model());
-    const auto& jd = model->descriptor();
     const auto& path = static_cast<JsonStructure*>(index.internalPointer())->path;
-    return jd[path];
+    res["desc"] = model->descriptor()[path];
+    const auto& pl = model->placeholder();
+    if (pl.contains(path))
+    {
+        res["placeholderValue"] = pl[path];
+    }
+    return res;
 }
 
 json getVal(const QModelIndex& index)
 {
-    json res;
     const auto model = qobject_cast<const StaticJsonModel*>(index.model());
     const auto& j = model->jSON();
     const auto& path = static_cast<JsonStructure*>(index.internalPointer())->path;
@@ -44,7 +48,7 @@ json getVal(const QModelIndex& index)
 QWidget* StaticJsonDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem& option,
                                           const QModelIndex& index) const
 {
-    const auto ed = new StaticJsonEditor(getDesc(index), parent);
+    const auto ed = new StaticJsonEditor(getPD(index), parent);
     // connect(ed, &StaticJsonEditor::editingFinished, this, &StaticJsonDelegate::commitAndCloseEditor);
     return ed;
 }

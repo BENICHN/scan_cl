@@ -61,6 +61,7 @@ using std::ispanstream;
 using std::ospanstream;
 using std::basic_ispanstream;
 using std::basic_ospanstream;
+using std::filesystem::path;
 
 namespace stf = std::filesystem;
 namespace str = std::ranges;

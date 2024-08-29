@@ -53,6 +53,7 @@ Task<> MainWindow::searchDevices()
     {
         msg << scanner.devices().size();
         msg << " appareils de scan toruvés";
+        co_await scanner.setCurrentDevice(app().appSettings().scanDevName());
     }
     else
     {

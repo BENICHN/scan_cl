@@ -42,20 +42,29 @@ class StaticJsonModel : public QAbstractItemModel
 {
     Q_OBJECT
     mutable optional<json> _json;
+    mutable optional<json> _jsonPlaceholder;
     mutable optional<json> _jsonDescriptor;
     mutable optional<JsonStructure> _jsonStructure;
+    mutable int _resetCounter = 0;
 
 protected:
     void resetJsonInternal() const;
 
-    [[nodiscard]] virtual json createJson() const = 0;
-    [[nodiscard]] virtual json createJsonDescriptor(const json& j) const;
-    virtual bool editJsonProperty(const JsonStructure::path_t& path, const json& value) const = 0;
+    bool initialized() const;
+    virtual void createJson() const;
+    virtual void createJsonDescriptor() const;
+    virtual void createJsonPlaceholder() const;
+    void setJson(const json& j) const { _json = j; }
+    void setJsonPlaceholder(const json& j) const { _jsonPlaceholder = j; }
+    void setJsonDescriptor(const json& j) const { _jsonDescriptor = j; }
+    virtual bool beforeEditJsonProperty(const JsonStructure::path_t& path, const json& value) const = 0;
+    virtual void afterEditJsonProperty(const JsonStructure::path_t& path, const json& value) const;
 
 public:
     explicit StaticJsonModel(QObject* parent = nullptr);
 
     json& jSON() const;
+    json& placeholder() const;
     json& descriptor() const;
     JsonStructure& structure() const;
     void resetJson();

@@ -22,6 +22,8 @@ public:
     ~PageNavWidget() override;
 
     [[nodiscard]] QListView* list() const { return ui->list; }
+    void selectPageAt(int i);
+    void selectLastPage();
 
 private:
     Ui::PageNavWidget *ui;

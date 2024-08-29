@@ -105,26 +105,6 @@ PageStatus Page::status() const
     return PST_COMPLETED;
 }
 
-const CroppingStep& Page::croppingStep() const
-{
-    return *static_cast<CroppingStep*>(steps.at(0).get());
-}
-
-const MergingStep& Page::mergingStep() const
-{
-    return *static_cast<MergingStep*>(steps.at(1).get());
-}
-
-const CleaningStep& Page::cleaningStep() const
-{
-    return *static_cast<CleaningStep*>(steps.at(2).get());
-}
-
-const FinalStep& Page::finalStep() const
-{
-    return *static_cast<FinalStep*>(steps.at(3).get());
-}
-
 // const const Page& Book::page(const int id) const
 // {
 //     for (const Page& page : pages)
@@ -164,6 +144,7 @@ bool Book::insertPage(int index, Page&& page)
     if (_pages.contains(pageId)) return false;
     _pages.emplace(pageId, std::move(page));
     _ids.insert(_ids.begin() + index, pageId);
+    emit pageListChanged();
     return true;
 }
 
@@ -199,7 +180,7 @@ void Book::resetPage(const int id)
 
 string Book::savingPath() const
 {
-    return _root+"/book.json";
+    return _root + "/book.json";
 }
 
 void Book::save()
@@ -211,7 +192,7 @@ void Book::save()
 
 void Book::loadFromRoot(const string& root)
 {
-    ifstream file(root+"/book.json");
+    ifstream file(root + "/book.json");
     const auto j = json::parse(file);
     _root = root;
     loadFromJson(j);
@@ -221,14 +202,18 @@ Book::Book()
 {
     connect(this, &Book::pageStatusChanged, [=]
     {
-       save();
+        save();
+    });
+    connect(this, &Book::pageListChanged, [=]
+    {
+        save();
     });
 }
 
 json Book::globalSettings(const string& name) const
 {
     if (_globalSettings.contains(name)) return _globalSettings.at(name);
-    return {};
+    return json::object();
 }
 
 auto&& getOrCreate(auto&& dir)
@@ -449,18 +434,19 @@ string Book::getPageSourceThumbnail(const int id) const
 
 string Book::scanDir() const
 {
-    return getOrCreate(_root + "/.scan/");
+    return sourcesDir(); // getOrCreate(_root + "/.scan/");
 }
 
-string Book::getNewScanPath() const
+string Book::getNewScanFilename() const
 {
     const auto now_time_t = std::time(nullptr);
     const auto now_tm = *std::localtime(&now_time_t);
     ostringstream ss;
-    ss << std::put_time(&now_tm,"%Y-%m-%d-%H-%M-%S");
+    ss << std::put_time(&now_tm, "%Y-%m-%d-%H-%M-%S");
     const auto d = scanDir();
     bool ok = true;
-    do {
+    do
+    {
         for (const auto& f : stf::directory_iterator(d))
         {
             const auto fn = f.path().stem().string();
@@ -471,9 +457,15 @@ string Book::getNewScanPath() const
                 break;
             }
         }
-    } while (!ok);
+    }
+    while (!ok);
     ss << ".png";
-    return d + ss.str();
+    return ss.str(); // d + ss.str();
+}
+
+string Book::getNewScanPath() const
+{
+    return scanDir() + getNewScanFilename();
 }
 
 void Book::applyChoiceToPage(const int id, const SelectionInfo& selection)

@@ -5,6 +5,8 @@
 #include "utils.h"
 #include <xxhash.h>
 
+#include "app.h"
+
 vector<uchar> exec(const char* cmd)
 {
     vector<uchar> result;
@@ -90,7 +92,7 @@ QRegion roundedRect(const int x, const int y, const int w, const int h, const in
 
 QRegion roundedRectInner(int x, int y, int w, int h, int r)
 {
-    return roundedRect(x+r, y+r, w-2*r, h-2*r, r);
+    return roundedRect(x + r, y + r, w - 2 * r, h - 2 * r, r);
 }
 
 int cx(const QRect& rect)
@@ -113,7 +115,7 @@ QRect mapRectTo(const QWidget* src, const QWidget* target, const QRect& rect)
 
 QPointF unitVector(const float angle)
 {
-    return { cos(angle), sin(angle) };
+    return {cos(angle), sin(angle)};
 }
 
 QPoint radialVector(const float angle, const float radius)
@@ -124,9 +126,9 @@ QPoint radialVector(const float angle, const float radius)
 void drawArrow(QPainter* painter, const QPoint& pos, const float angle, const float radius, const float amplitude)
 {
     const QPoint pts[] = {
-        pos + radialVector(angle+M_PI-amplitude, radius),
+        pos + radialVector(angle + M_PI - amplitude, radius),
         pos,
-        pos + radialVector(angle+M_PI+amplitude, radius)
+        pos + radialVector(angle + M_PI + amplitude, radius)
     };
     painter->drawPolyline(pts, 3);
 }
@@ -135,9 +137,9 @@ void drawText(QPainter& painter, qreal x, qreal y, Qt::Alignment flags, const QS
 {
     constexpr qreal size = 32767.0;
     QPointF corner(x, y - size);
-    if (flags & Qt::AlignHCenter) corner.rx() -= size/2.0;
+    if (flags & Qt::AlignHCenter) corner.rx() -= size / 2.0;
     else if (flags & Qt::AlignRight) corner.rx() -= size;
-    if (flags & Qt::AlignVCenter) corner.ry() += size/2.0;
+    if (flags & Qt::AlignVCenter) corner.ry() += size / 2.0;
     else if (flags & Qt::AlignTop) corner.ry() += size;
     else flags |= Qt::AlignBottom;
     const QRectF rect{corner.x(), corner.y(), size, size};
@@ -154,28 +156,34 @@ Task<> delay(const int ms)
     return QCoro::sleepFor(std::chrono::milliseconds(ms));
 }
 
-string calculateXXH3_64(const string& filePath) {
+string calculateXXH3_64(const string& filePath)
+{
     XXH3_state_t* state = XXH3_createState();
-    if (state == nullptr) {
+    if (state == nullptr)
+    {
         throw runtime_error("Failed to create XXH3 state");
     }
 
-    if (XXH3_64bits_reset(state) == XXH_ERROR) {
+    if (XXH3_64bits_reset(state) == XXH_ERROR)
+    {
         XXH3_freeState(state);
         throw runtime_error("Failed to reset XXH3 state");
     }
 
     ifstream file(filePath, ifstream::binary);
-    if (!file) {
+    if (!file)
+    {
         XXH3_freeState(state);
         throw runtime_error("Could not open file: " + filePath);
     }
 
     constexpr int bufSize = 4096;
     char buffer[bufSize];
-    while (file.good()) {
+    while (file.good())
+    {
         file.read(buffer, bufSize);
-        if (XXH3_64bits_update(state, buffer, file.gcount()) == XXH_ERROR) {
+        if (XXH3_64bits_update(state, buffer, file.gcount()) == XXH_ERROR)
+        {
             XXH3_freeState(state);
             throw runtime_error("Failed to update XXH3 state");
         }
@@ -200,4 +208,53 @@ QPainterPath roundRect(const QRect& rect, const float radius)
     QPainterPath res;
     res.addRoundedRect(rect, radius, radius);
     return res;
+}
+
+int uniqueSelectedId(const QItemSelectionModel* model)
+{
+    auto idxs = model->selectedIndexes();
+    return idxs.size() == 1 ? app().book().ids().at(idxs[0].row()) : -1;
+}
+
+void updateNewKeys(json& src, const json& repl, const bool updateNulls)
+{
+    for (auto& kv : repl.items())
+    {
+        const auto it = src.find(kv.key());
+        if (it == src.end() || updateNulls && it.value().is_null())
+        {
+            if (src.is_array()) src[stoi(kv.key())] = kv.value();
+            else src[kv.key()] = kv.value();
+        }
+        else if (jsonIsContainer(kv.value()))
+        {
+            updateNewKeys(src[kv.key()], kv.value());
+        }
+    }
+}
+
+void nullifyKeys(json& src, const json& repl)
+{
+    for (auto& kv : src.items())
+    {
+        if (jsonIsContainer(kv.value()))
+        {
+            const auto it = repl.find(kv.key());
+            nullifyKeys(kv.value(), it == repl.end() || it.value().is_null() ? json() : it.value());
+        }
+        else
+        {
+            const auto it = repl.find(kv.key());
+            if (it == repl.end() || it.value().is_null())
+            {
+                if (src.is_array()) src[stoi(kv.key())] = nullptr;
+                else src[kv.key()] = nullptr;
+            }
+        }
+    }
+}
+
+bool jsonIsContainer(const json& j)
+{
+    return j.is_array() || j.is_object();
 }

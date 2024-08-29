@@ -24,12 +24,14 @@ PreviewerWidget::PreviewerWidget(QWidget* parent) :
         if (pageId == _pageId) // !
         {
             updateImageAndRect(true, true); // !
+            updateSelector();
         }
     });
     connect(ui->selector, &PreviewerSelector::selectionChanged, [=]
     {
         updateImageAndRect(true, true); // !
     });
+    updateSelector();
 }
 
 PreviewerWidget::~PreviewerWidget()
@@ -41,6 +43,7 @@ void PreviewerWidget::setPageId(const int id)
 {
     _pageId = id;
     updateImageAndRect(true, true);
+    updateSelector();
 }
 
 // void PreviewerWidget::setAskSettings(const AskSettings askSettings)
@@ -152,6 +155,21 @@ void PreviewerWidget::updateImageAndRect(const bool updateImage, const bool upda
                 ui->iv->setSRDisabled();
             }
         }
+    }
+}
+
+void PreviewerWidget::updateSelector()
+{
+    if (_pageId == -1)
+    {
+        ui->selector->hide();
+    }
+    else
+    {
+        ui->selector->show();
+        const auto& book = app().book();
+        ui->selector->setHasColor(book.page(_pageId).colorMode != PT_BLACK);
+        ui->selector->setResMixed(book.pageMixedAvailable(_pageId));
     }
 }
 

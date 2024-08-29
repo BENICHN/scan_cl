@@ -44,22 +44,22 @@
         {
           "name": "Recadrage",
           "settings": null,
-          "status": "SST_NOTRUN"
+          "status": "SST_COMPLETE"
         },
         {
           "name": "Assemblage",
           "settings": null,
-          "status": "SST_NOTRUN"
+          "status": "SST_COMPLETE"
         },
         {
           "name": "Nettoyage",
           "settings": null,
-          "status": "SST_NOTRUN"
+          "status": "SST_COMPLETE"
         },
         {
           "name": "Finalisation",
           "settings": null,
-          "status": "SST_NOTRUN"
+          "status": "SST_COMPLETE"
         }
       ],
       "subPage": 1
@@ -215,7 +215,7 @@
         {
           "name": "Recadrage",
           "settings": null,
-          "status": "SST_NOTRUN"
+          "status": "SST_COMPLETE"
         },
         {
           "name": "Assemblage",
@@ -225,12 +225,12 @@
         {
           "name": "Nettoyage",
           "settings": null,
-          "status": "SST_NOTRUN"
+          "status": "SST_COMPLETE"
         },
         {
           "name": "Finalisation",
           "settings": null,
-          "status": "SST_NOTRUN"
+          "status": "SST_COMPLETE"
         }
       ],
       "subPage": 1
@@ -243,6 +243,36 @@
         {
           "name": "Recadrage",
           "settings": null,
+          "status": "SST_COMPLETE"
+        },
+        {
+          "name": "Assemblage",
+          "settings": null,
+          "status": "SST_NOTRUN"
+        },
+        {
+          "name": "Nettoyage",
+          "settings": null,
+          "status": "SST_COMPLETE"
+        },
+        {
+          "name": "Finalisation",
+          "settings": null,
+          "status": "SST_COMPLETE"
+        }
+      ],
+      "subPage": 1
+    },
+    {
+      "colorMode": "PT_BLACK",
+      "id": 343744919,
+      "source": "2024-08-29-15-58-15.png",
+      "steps": [
+        {
+          "name": "Recadrage",
+          "settings": {
+            "flip": false
+          },
           "status": "SST_NOTRUN"
         },
         {
@@ -257,8 +287,45 @@
         },
         {
           "name": "Finalisation",
-          "settings": null,
+          "settings": {
+            "alignmentH": "l",
+            "alignmentV": "t"
+          },
           "status": "SST_NOTRUN"
+        }
+      ],
+      "subPage": 1
+    },
+    {
+      "cgSource": "2024-08-29-15-58-45-color.png",
+      "colorMode": "PT_COLOR",
+      "id": 1320248446,
+      "source": "2024-08-29-15-58-45.png",
+      "steps": [
+        {
+          "name": "Recadrage",
+          "settings": {
+            "flip": false
+          },
+          "status": "SST_COMPLETE"
+        },
+        {
+          "name": "Assemblage",
+          "settings": null,
+          "status": "SST_COMPLETE"
+        },
+        {
+          "name": "Nettoyage",
+          "settings": null,
+          "status": "SST_COMPLETE"
+        },
+        {
+          "name": "Finalisation",
+          "settings": {
+            "alignmentH": "l",
+            "alignmentV": "t"
+          },
+          "status": "SST_ERROR"
         }
       ],
       "subPage": 1

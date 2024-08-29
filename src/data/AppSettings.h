@@ -23,6 +23,8 @@ public:
 
     [[nodiscard]] json getScanOptions(PageColorMode mode) const;
     [[nodiscard]] json getScanOptions(const string& devName, PageColorMode mode) const;
+    [[nodiscard]] json getRealScanOptions(PageColorMode mode) const;
+    [[nodiscard]] json getRealScanOptions(const string& devName, PageColorMode mode) const;
     void setScanOptions(PageColorMode mode, const json& options);
     void setScanOptions(const string& devName, PageColorMode mode, const json& options);
 

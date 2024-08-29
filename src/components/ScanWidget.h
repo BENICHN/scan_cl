@@ -36,7 +36,7 @@ private:
     bool updatePixmap(const char* savingPath = nullptr);
     Task<> updatePixmapLoop();
 
-    void setAuxVisible(bool visible);
+    void setTopCollapsed(bool collapsed);
     void startScanning();
     void stopScanning();
     Task<> scanLoop();

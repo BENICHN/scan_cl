@@ -258,3 +258,22 @@ bool jsonIsContainer(const json& j)
 {
     return j.is_array() || j.is_object();
 }
+
+generator<QLayoutItem*> recursiveLayoutChildren(QLayout* layout)
+{
+    for (int i = 0; i < layout->count(); ++i)
+    {
+        const auto item = layout->itemAt(i);
+        if (item->layout())
+        {
+            for (const auto it : recursiveLayoutChildren(item->layout()))
+            {
+                co_yield it;
+            }
+        }
+        else
+        {
+            co_yield item;
+        }
+    }
+}

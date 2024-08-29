@@ -38,6 +38,7 @@ public:
 
 private:
     void updateImageAndRect(bool updateImage, bool updateRect);
+    void updateSelector();
 
 protected:
     void keyPressEvent(QKeyEvent* event) override;

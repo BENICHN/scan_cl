@@ -5,6 +5,9 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <qlayout.h>
+#include <qlayoutitem.h>
+
 #include "imports/stdimports.h"
 #include "imports/qtimports.h"
 #include "imports/qcoroimports.h"
@@ -120,5 +123,7 @@ int uniqueSelectedId(const QItemSelectionModel* model);
 void updateNewKeys(json& src, const json& repl, bool updateNulls = true);
 void nullifyKeys(json& src, const json& repl);
 bool jsonIsContainer(const json& j);
+
+generator<QLayoutItem*> recursiveLayoutChildren(QLayout* layout);
 
 #endif //UTILS_H

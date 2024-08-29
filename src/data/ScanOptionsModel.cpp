@@ -28,11 +28,7 @@ void ScanOptionsModel::createJson() const
     }
     auto& scanner = app().scanner();
     const auto jc = settings.getScanOptions(_mode);
-    auto jcr = jc;
-    if (_mode != PT_BLACK)
-    {
-        updateNewKeys(jcr, settings.getScanOptions(PT_BLACK));
-    }
+    const auto jcr = settings.getRealScanOptions(_mode);
     scanner.setOptionValues(jcr);
     const auto sta = scanner.getOptionsValues();
     auto ja = sta ? sta.value() : json::object();

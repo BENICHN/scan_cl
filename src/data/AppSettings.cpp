@@ -6,6 +6,8 @@
 
 #include <magic_enum.hpp>
 
+#include "../utils.h"
+
 AppSettings::AppSettings(QObject* parent): QObject(parent)
 {
 }
@@ -36,6 +38,23 @@ json AppSettings::getScanOptions(const string& devName, const PageColorMode mode
         return it.value().at(magic_enum::enum_name(mode)).at("options");
     }
     return json::object();
+}
+
+json AppSettings::getRealScanOptions(const PageColorMode mode) const
+{
+    if (!_scanDevName.has_value()) return json::object();
+    return getRealScanOptions(_scanDevName.value(), mode);
+}
+
+json AppSettings::getRealScanOptions(const string& devName, const PageColorMode mode) const
+{
+    auto opts = getScanOptions(devName, mode);
+    if (mode != PT_BLACK)
+    {
+        const auto& bw = getScanOptions(devName, PT_BLACK);
+        updateNewKeys(opts, bw);
+    }
+    return opts;
 }
 
 void AppSettings::setScanOptions(const PageColorMode mode, const json& options)

@@ -80,8 +80,8 @@ ScanWidget::ScanWidget(QWidget* parent) :
     QWidget(parent), ui(new Ui::ScanWidget)
 {
     ui->setupUi(this);
-    ui->stopButton->hide();
     ui->lIV->setEditable(false);
+    ui->visButton->hide();
     connect(&app().scanner(), &Scanner::devicesFound, [=] { updateDevices(); });
     connect(&app().scanner(), &Scanner::currentDeviceChanged, [=]
     {
@@ -109,9 +109,13 @@ ScanWidget::ScanWidget(QWidget* parent) :
     {
         startScanning();
     });
-    connect(ui->stopButton, &QPushButton::clicked, [=]
+    connect(ui->collBtn, &QPushButton::clicked, [=]
     {
-        stopScanning();
+        setTopCollapsed(true);
+    });
+    connect(ui->visButton, &QPushButton::clicked, [=]
+    {
+        setTopCollapsed(false);
     });
     connect(&app().scanner(), &Scanner::pageScanned, [=]
     {
@@ -217,22 +221,22 @@ Task<> ScanWidget::updatePixmapLoop()
     }
 }
 
-void ScanWidget::setAuxVisible(bool visible)
+void ScanWidget::setTopCollapsed(const bool collapsed)
 {
     const auto l = layout();
-    for (int i = 0; i < l->count() - 1; ++i)
+    for (int i = 0; i < l->count() - 2; ++i)
     {
         const auto ly = l->itemAt(i)->layout();
-        for (int i = 0; i < ly->count(); ++i)
+        for (const auto it : recursiveLayoutChildren(ly))
         {
-            const auto it = ly->itemAt(i);
+            // const auto it = ly->itemAt(i);
             if (it->widget())
             {
-                it->widget()->setVisible(visible);
+                it->widget()->setHidden(collapsed);
             }
         }
     }
-    ui->stopButton->setHidden(visible);
+    ui->visButton->setVisible(collapsed);
 }
 
 void ScanWidget::startScanning()
@@ -240,7 +244,7 @@ void ScanWidget::startScanning()
     if (!_scanning)
     {
         _scanning = true;
-        setAuxVisible(false);
+        setTopCollapsed(true);
         scanLoop();
     }
 }
@@ -255,10 +259,12 @@ Task<> ScanWidget::scanLoop()
 {
     auto& book = app().book();
     auto& scanner = app().scanner();
+    const auto& settings = app().appSettings();
 
     bool scanningColor = false;
     path imagePath;
     path imageColorPath;
+    PageColorMode mode = PT_BLACK;
 
     while (_scanning)
     {
@@ -269,6 +275,7 @@ Task<> ScanWidget::scanLoop()
                 string());
         }
 
+        scanner.setOptionValues(settings.getRealScanOptions(scanningColor ? mode : PT_BLACK));
         const auto sta = co_await scanner.startScan();
         if (!sta)
         {
@@ -286,7 +293,7 @@ Task<> ScanWidget::scanLoop()
         {
             continue;
         }
-        const auto mode = getColorModeFromSB(ui->rSB);
+        mode = getColorModeFromSB(ui->rSB);
         const auto sclr = mode != PT_BLACK;
         if (scanningColor && sclr)
         {
@@ -329,7 +336,6 @@ Task<> ScanWidget::scanLoop()
         co_await delay(ui->delayBox->value() * 1000);
         scanningColor = !scanningColor && sclr;
     }
-    setAuxVisible(true);
     co_return;
 }
 

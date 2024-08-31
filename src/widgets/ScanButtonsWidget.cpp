@@ -102,6 +102,7 @@ void ScanButtonsWidget::updateButtons()
         ly->addLayout(cly);
         const auto lab = new QLabel(this);
         lab->setText(coll.name.c_str());
+        lab->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
         lab->setStyleSheet("* {color: rgb(127, 127, 127); font-size: 16px;}");
         cly->addWidget(lab);
         const auto bg = new QButtonGroup(this);

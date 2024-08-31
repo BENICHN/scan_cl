@@ -96,7 +96,7 @@
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QCheckBox" name="checkBox_2">
+        <widget class="QCheckBox" name="cbGray">
          <property name="text">
           <string>Deux scans pour nuances de gris :</string>
          </property>
@@ -113,7 +113,7 @@
         </widget>
        </item>
        <item row="0" column="2">
-        <widget class="QCheckBox" name="checkBox_3">
+        <widget class="QCheckBox" name="cbColor">
          <property name="text">
           <string>Deux scans pour couleur :</string>
          </property>
@@ -267,18 +267,35 @@
       </layout>
      </item>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1">
+      <layout class="QVBoxLayout" name="lLayout" stretch="0">
        <item>
         <widget class="PreviewerWidget" name="lIV" native="true"/>
        </item>
       </layout>
      </item>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0">
-       <item>
-        <widget class="ImageViewerWidget" name="rIV" native="true"/>
+      <layout class="QGridLayout" name="rLayout" rowstretch="1,0">
+       <item row="0" column="0">
+        <widget class="ImageViewerWidget" name="rIV" native="true">
+         <widget class="QLabel" name="lLab">
+          <property name="geometry">
+           <rect>
+            <x>320</x>
+            <y>30</y>
+            <width>132</width>
+            <height>132</height>
+           </rect>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">*{min-width: 32px;min-height: 32px;margin: 50px;background: red;}</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </widget>
        </item>
-       <item>
+       <item row="1" column="0">
         <widget class="ScanButtonsWidget" name="rSB" native="true"/>
        </item>
       </layout>
@@ -386,7 +403,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>checkBox_2</sender>
+   <sender>cbGray</sender>
    <signal>toggled(bool)</signal>
    <receiver>optsG</receiver>
    <slot>setEnabled(bool)</slot>
@@ -402,7 +419,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>checkBox_3</sender>
+   <sender>cbColor</sender>
    <signal>toggled(bool)</signal>
    <receiver>optsC</receiver>
    <slot>setEnabled(bool)</slot>

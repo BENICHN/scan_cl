@@ -24,6 +24,8 @@ class ScanWidget : public QWidget
     bool _scanning;
     bool _canUpdateDevice = true;
 
+
+
 public:
     explicit ScanWidget(QWidget* parent = nullptr);
     ~ScanWidget() override;

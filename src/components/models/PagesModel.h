@@ -7,16 +7,24 @@
 
 #include "../../imports/qtimports.h"
 #include "../../data/book.h"
+#include "../props/PropsEditorTypes.h"
 
-class PagesModel final : public QAbstractListModel {
+class PagesModel final : public QAbstractListModel
+{
     Q_OBJECT
-public:
-    explicit PagesModel(QObject *parent = nullptr);
-    void setPages(const vector<Page>& pages);
-    int rowCount(const QModelIndex& parent) const override;
-    QVariant data(const QModelIndex& index, int role) const override;
-};
 
+    vector<PropsSource> _data;
+
+public:
+    explicit PagesModel(QObject* parent = nullptr);
+    void setPages(const vector<Page>& pages);
+    QVariant data(const QModelIndex& index, int role) const override;
+    int rowCount(const QModelIndex& parent) const override;
+    QModelIndex index(int row, int column, const QModelIndex& parent) const override;
+
+protected slots:
+    void resetInternalData() override;
+};
 
 
 #endif //PAGESMODEL_H

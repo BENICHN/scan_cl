@@ -532,5 +532,6 @@ void Book::loadFromJson(const json& j)
         _pages.emplace(id, std::move(p));
         _ids.emplace_back(id);
     }
+    emit pageListChanged();
     // ! signals
 }

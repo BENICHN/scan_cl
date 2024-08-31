@@ -82,6 +82,9 @@ ScanWidget::ScanWidget(QWidget* parent) :
     ui->setupUi(this);
     ui->lIV->setEditable(false);
     ui->visButton->hide();
+
+    ui->rLayout->addWidget(ui->lLab, 0, 0, Qt::AlignRight | Qt::AlignTop);
+
     connect(&app().scanner(), &Scanner::devicesFound, [=] { updateDevices(); });
     connect(&app().scanner(), &Scanner::currentDeviceChanged, [=]
     {
@@ -316,14 +319,17 @@ Task<> ScanWidget::scanLoop()
             }
         }
 
-        if (scanningColor || !sclr) // indique prochainement une nouvelle page
+        const auto sameSrc = mode == PT_GRAY && !ui->cbGray->isChecked() || mode == PT_COLOR && !ui->cbColor->isChecked();
+
+        if (scanningColor || !sclr || sameSrc) // indique prochainement une nouvelle page
         {
             auto page = Page{
-                std::rand(), mode, imagePath.filename(), sclr ? optional(imageColorPath.filename()) : nullopt, 1
+                std::rand(), mode, imagePath.filename(), sclr ? sameSrc ? optional(imagePath.filename()) : optional(imageColorPath.filename()) : nullopt, 1
             };
             page.croppingStep().settings.update(getCropSettingsFromSB(ui->rSB));
             page.finalStep().settings.update(getFinalSettingsFromSB(ui->rSB));
             book.insertPageBack(std::move(page));
+            app().works().enqueue({page.id, true, true});
             ui->pageNav->selectLastPage();
             scanner.clearCurrentImage();
             updatePixmap();

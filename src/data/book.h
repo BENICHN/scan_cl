@@ -202,6 +202,8 @@ public:
     bool insertPage(int index, Page&& page);
     bool insertPageFront(Page&& page);
     bool insertPageBack(Page&& page);
+    void removePage(int id);
+    void removePages(const vector<int>& ids);
     void cleanPage(int id);
     void resetPage(int id);
 

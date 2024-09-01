@@ -10,6 +10,7 @@
 #include "../data/StaticJsonDelegate.h"
 #include "../data/ScanOptionsModel.h"
 #include "../widgets/ImageViewerWidget.h"
+#include <QGraphicsOpacityEffect>
 
 ScanButtonPanel defaultPanel()
 {
@@ -83,7 +84,7 @@ ScanWidget::ScanWidget(QWidget* parent) :
     ui->lIV->setEditable(false);
     ui->visButton->hide();
 
-    ui->rLayout->addWidget(ui->lLab, 0, 0, Qt::AlignRight | Qt::AlignTop);
+    ui->rLayout->addWidget(ui->lIcon, 0, 0, Qt::AlignRight | Qt::AlignTop);
 
     connect(&app().scanner(), &Scanner::devicesFound, [=] { updateDevices(); });
     connect(&app().scanner(), &Scanner::currentDeviceChanged, [=]
@@ -165,6 +166,23 @@ ScanWidget::ScanWidget(QWidget* parent) :
     updateDevices();
     updateDevList();
     updateDevListEnabled();
+
+    ui->lBWLab->setGraphicsEffect(new QGraphicsOpacityEffect(this));
+    ui->lCGLab->setGraphicsEffect(new QGraphicsOpacityEffect(this));
+    _aBW = new QPropertyAnimation(ui->lBWLab->graphicsEffect(), "opacity");
+    _aBW->setDuration(1000);
+    _aBW->setKeyValueAt(0.5, 0);
+    _aBW->setStartValue(1);
+    _aBW->setEndValue(1);
+    _aBW->setLoopCount(-1);
+    _aBW->start();
+    _aCG = new QPropertyAnimation(ui->lCGLab->graphicsEffect(), "opacity");
+    _aCG->setDuration(1000);
+    _aCG->setKeyValueAt(0.5, 0);
+    _aCG->setStartValue(1);
+    _aCG->setEndValue(1);
+    _aCG->setLoopCount(-1);
+    _aCG->start();
 }
 
 ScanWidget::~ScanWidget()
@@ -205,13 +223,19 @@ void ScanWidget::updateDevList()
 //     // });
 // }
 
-bool ScanWidget::updatePixmap(const char* savingPath)
+Task<bool> ScanWidget::updatePixmap(const char* savingPath)
 {
     auto pix = app().scanner().generateCurrentPixmap();
     // addCropLines(pix);
     ui->rIV->setPixmap(pix);
-    if (savingPath) return pix.save(savingPath);
-    return true;
+    if (savingPath)
+    {
+        co_return co_await QtConcurrent::run([&]
+        {
+            return pix.save(savingPath);
+        });
+    }
+    co_return true;
 }
 
 Task<> ScanWidget::updatePixmapLoop()
@@ -219,8 +243,38 @@ Task<> ScanWidget::updatePixmapLoop()
     const auto& scanner = app().scanner();
     while (scanner.scanning())
     {
-        updatePixmap();
+        co_await updatePixmap();
         co_await delay(200);
+    }
+}
+
+void ScanWidget::setScanningIcon(const optional<PageColorMode>& mode)
+{
+    ui->lBWLab->setPixmap({});
+    ui->lCGLab->setPixmap({});
+    if (mode.has_value())
+    {
+        ui->lBWLab->setPixmap(QPixmap(":/icons/sB.svg"));
+        const auto m = mode.value();
+        if (m != PT_BLACK)
+        {
+            _aBW->stop();
+            ui->lBWLab->graphicsEffect()->setProperty("opacity", 1);
+            _aCG->start();
+            switch (m)
+            {
+            case PT_COLOR:
+                ui->lCGLab->setPixmap(QPixmap(":/icons/sC.svg"));
+                break;
+            case PT_GRAY:
+                ui->lCGLab->setPixmap(QPixmap(":/icons/sG.svg"));
+                break;
+            }
+        }
+        else
+        {
+            _aBW->start();
+        }
     }
 }
 
@@ -277,8 +331,9 @@ Task<> ScanWidget::scanLoop()
             imageColorPath = imagePath.parent_path() / (imagePath.stem().string() + "-color" + imagePath.extension().
                 string());
         }
-
-        scanner.setOptionValues(settings.getRealScanOptions(scanningColor ? mode : PT_BLACK));
+        const auto& md = scanningColor ? mode : PT_BLACK;
+        setScanningIcon(md);
+        scanner.setOptionValues(settings.getRealScanOptions(md));
         const auto sta = co_await scanner.startScan();
         if (!sta)
         {
@@ -289,7 +344,7 @@ Task<> ScanWidget::scanLoop()
         }
         while (scanner.scanning())
         {
-            updatePixmap();
+            co_await updatePixmap();
             co_await delay(200);
         }
         if (!_scanning || scanner.imageEmpty())
@@ -300,7 +355,7 @@ Task<> ScanWidget::scanLoop()
         const auto sclr = mode != PT_BLACK;
         if (scanningColor && sclr)
         {
-            if (!updatePixmap(imageColorPath.c_str()))
+            if (!co_await updatePixmap(imageColorPath.c_str()))
             {
                 remove(imagePath);
                 remove(imageColorPath);
@@ -310,7 +365,7 @@ Task<> ScanWidget::scanLoop()
         }
         if (!scanningColor)
         {
-            if (!updatePixmap(imagePath.c_str()))
+            if (!co_await updatePixmap(imagePath.c_str()))
             {
                 remove(imagePath);
                 remove(imageColorPath);
@@ -319,12 +374,14 @@ Task<> ScanWidget::scanLoop()
             }
         }
 
-        const auto sameSrc = mode == PT_GRAY && !ui->cbGray->isChecked() || mode == PT_COLOR && !ui->cbColor->isChecked();
+        const auto sameSrc = mode == PT_GRAY && !ui->cbGray->isChecked() || mode == PT_COLOR && !ui->cbColor->
+            isChecked();
 
         if (scanningColor || !sclr || sameSrc) // indique prochainement une nouvelle page
         {
             auto page = Page{
-                std::rand(), mode, imagePath.filename(), sclr ? sameSrc ? optional(imagePath.filename()) : optional(imageColorPath.filename()) : nullopt, 1
+                std::rand(), mode, imagePath.filename(),
+                sclr ? sameSrc ? optional(imagePath.filename()) : optional(imageColorPath.filename()) : nullopt, 1
             };
             page.croppingStep().settings.update(getCropSettingsFromSB(ui->rSB));
             page.finalStep().settings.update(getFinalSettingsFromSB(ui->rSB));
@@ -332,7 +389,7 @@ Task<> ScanWidget::scanLoop()
             app().works().enqueue({page.id, true, true});
             ui->pageNav->selectLastPage();
             scanner.clearCurrentImage();
-            updatePixmap();
+            co_await updatePixmap();
             if (!ui->scanMultBox->isChecked())
             {
                 stopScanning();
@@ -342,7 +399,7 @@ Task<> ScanWidget::scanLoop()
         co_await delay(ui->delayBox->value() * 1000);
         scanningColor = !scanningColor && sclr;
     }
-    co_return;
+    setScanningIcon(nullopt);
 }
 
 void ScanWidget::keyPressEvent(QKeyEvent* event)

@@ -19,5 +19,8 @@
         <file>icons/reset.png</file>
         <file>icons/preview.png</file>
         <file>icons/delete.png</file>
+        <file>icons/sB.svg</file>
+        <file>icons/sG.svg</file>
+        <file>icons/sC.svg</file>
     </qresource>
 </RCC>

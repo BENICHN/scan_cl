@@ -158,6 +158,23 @@ bool Book::insertPageBack(Page&& page)
     return insertPage(_pages.size(), std::move(page));
 }
 
+void Book::removePage(int id)
+{
+    _pages.erase(id);
+    erase_if(_ids, [=](const auto elem) { return elem == id; });
+    emit pageListChanged();
+}
+
+void Book::removePages(const vector<int>& ids)
+{
+    for (const auto id : ids)
+    {
+        _pages.erase(id);
+        erase_if(_ids, [=](const auto elem) { return elem == id; });
+    }
+    emit pageListChanged();
+}
+
 void Book::cleanPage(const int id)
 {
     stf::remove(pageGeneratedBWPath(id));

@@ -25,7 +25,7 @@ def apply_gamma(src, gamma):
     table = np.array([((i / 255) ** invGamma) * 255 for i in range(256)], dtype='b')
     return cv2.LUT(src, table).astype('uint8')
 
-def largest_blocks(bw, n, axis, minBlockSize, maxBlockDist, minConnectedBlockSize):
+def largest_blocks(bw, n, axis, minBlockSize, maxBlockDist, minConnectedBlockSize, thresh):
     """
     calcule les `n` plus gros blocs réduits selon l'axe `axis` après éventuel recollement
     # arguments
@@ -38,7 +38,7 @@ def largest_blocks(bw, n, axis, minBlockSize, maxBlockDist, minConnectedBlockSiz
     # retourne
     les `n` blocs
     """
-    cols = (np.sum(bw, axis=axis)>0).astype('uint8')
+    cols = (np.sum(bw, axis=axis)>thresh).astype('uint8')
     blocks = cv2.connectedComponentsWithStats(cols)[2][1:,[1,3]]
     large_blocks = blocks[blocks[:,1] > minBlockSize]
     large_connected_blocks = []
@@ -104,14 +104,14 @@ def process_img(gray, clr, op):
     bw = (gray < 255).astype('uint8')
     h, w = bw.shape
     # On détermine les plages x du contenu
-    x_blocks = largest_blocks(bw, op['subPage'], 0, op['minBlockSize'], op['maxBlockDist'], op['minConnectedBlockSize'])
+    x_blocks = largest_blocks(bw, op['subPage'], 0, op['minBlockSize'], op['maxBlockDist'], op['minConnectedBlockSize'], op['whiteThreshold'])
     if not len(x_blocks) == op['subPage']: raise Exception("pas assez de pages dans l'image")
     x_start, x_end = x_blocks[-1]
     bw1 = bw[:,x_start:x_end]
     
     # On détermine la plage y du contenu
     
-    y_start, y_end = largest_blocks(bw1, 1, axis=1, maxBlockDist=h, minConnectedBlockSize=0, minBlockSize=op['minBlockSize'])[0]
+    y_start, y_end = largest_blocks(bw1, 1, axis=1, maxBlockDist=h, minConnectedBlockSize=0, minBlockSize=op['minBlockSize'], thresh=op['whiteThreshold'])[0]
     bw2 = bw1[y_start:y_end]
     
     # On calcule le rectangle et la matrice de rotation

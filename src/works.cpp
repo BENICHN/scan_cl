@@ -1,3 +1,4 @@
+
 //
 // Created by benichn on 30/07/24.
 //
@@ -40,7 +41,7 @@ Task<> runWork(const Work& work)
                 }
             }
         }
-        else if (!work.allSteps || res == SST_ERROR || book.page(work.pageId).status() == PST_COMPLETED) break;
+        else if (!work.allSteps || res == SST_ERROR || res == SST_WAITING || book.page(work.pageId).status() == PST_COMPLETED) break;
     }
 }
 

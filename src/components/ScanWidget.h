@@ -6,6 +6,8 @@
 #define SCANWIDGET_H
 
 #include <QWidget>
+
+#include "../data/book.h"
 #include "../imports/qcoroimports.h"
 
 
@@ -23,8 +25,8 @@ class ScanWidget : public QWidget
     Q_OBJECT
     bool _scanning;
     bool _canUpdateDevice = true;
-
-
+    QPropertyAnimation* _aBW;
+    QPropertyAnimation* _aCG;
 
 public:
     explicit ScanWidget(QWidget* parent = nullptr);
@@ -35,9 +37,10 @@ private:
     void updateDevListEnabled();
     void updateDevList();
     // Task<> updateOptions();
-    bool updatePixmap(const char* savingPath = nullptr);
+    Task<bool> updatePixmap(const char* savingPath = nullptr);
     Task<> updatePixmapLoop();
 
+    void setScanningIcon(const optional<PageColorMode>& mode);
     void setTopCollapsed(bool collapsed);
     void startScanning();
     void stopScanning();

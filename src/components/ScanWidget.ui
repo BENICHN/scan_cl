@@ -277,21 +277,70 @@
       <layout class="QGridLayout" name="rLayout" rowstretch="1,0">
        <item row="0" column="0">
         <widget class="ImageViewerWidget" name="rIV" native="true">
-         <widget class="QLabel" name="lLab">
+         <widget class="QWidget" name="lIcon" native="true">
           <property name="geometry">
            <rect>
-            <x>320</x>
-            <y>30</y>
-            <width>132</width>
-            <height>132</height>
+            <x>300</x>
+            <y>60</y>
+            <width>151</width>
+            <height>171</height>
            </rect>
           </property>
-          <property name="styleSheet">
-           <string notr="true">*{min-width: 32px;min-height: 32px;margin: 50px;background: red;}</string>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <property name="spacing">
+            <number>16</number>
+           </property>
+           <property name="leftMargin">
+            <number>16</number>
+           </property>
+           <property name="topMargin">
+            <number>16</number>
+           </property>
+           <property name="rightMargin">
+            <number>16</number>
+           </property>
+           <property name="bottomMargin">
+            <number>16</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="lCGLab">
+             <property name="minimumSize">
+              <size>
+               <width>32</width>
+               <height>32</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>32</width>
+               <height>32</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lBWLab">
+             <property name="minimumSize">
+              <size>
+               <width>32</width>
+               <height>32</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>32</width>
+               <height>32</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </widget>
        </item>

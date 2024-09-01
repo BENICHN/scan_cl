@@ -49,6 +49,16 @@ ProcessFragment::ProcessFragment(QWidget* parent) :
             book.resetPage(ids.at(idx.row()));
         }
     });
+    connect(ui->actionSupprimer_la_s_lection, &QAction::triggered, [=]
+    {
+        auto& book = app().book();
+        const auto& ids = book.ids();
+        const auto sids = ui->pageNav->list()->selectionModel()->selectedIndexes() | stv::transform([&](const auto& idx)
+        {
+            return ids.at(idx.row());
+        }) | str::to<vector<int>>();
+        book.removePages(sids);
+    });
     connect(ui->actionAcquisition, &QAction::triggered, [=]
     {
         (new ScanWidget)->showMaximized();

@@ -118,18 +118,18 @@ void TimelineWidget::paintEvent(QPaintEvent* event)
         if (i > 0)
         {
             painter.save();
-            painter.setPen({Color::br5, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin});
+            painter.setPen({Color::br5, 1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin});
             painter.drawPolyline(poly.data(), 3);
             painter.restore();
         }
-        painter.setFont(font);
         // draw text
+        painter.setFont(font);
         const int tx = (i + .5f) * xStep;
         drawText(painter, tx, cy, Qt::AlignCenter, step->name().c_str());
         painter.restore();
         if (step->enabled()) ++i;
     }
-    painter.setClipping(false);
-    painter.setPen({Color::br5, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin});
-    painter.drawPath(rr);
+    // painter.setClipping(false);
+    // painter.setPen({Color::br5, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin});
+    // painter.drawPath(rr);
 }

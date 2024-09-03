@@ -43,22 +43,22 @@
       "steps": [
         {
           "name": "Recadrage",
-          "settings": null,
+          "settings": {},
           "status": "SST_COMPLETE"
         },
         {
           "name": "Assemblage",
-          "settings": null,
+          "settings": {},
           "status": "SST_COMPLETE"
         },
         {
           "name": "Nettoyage",
-          "settings": null,
+          "settings": {},
           "status": "SST_COMPLETE"
         },
         {
           "name": "Finalisation",
-          "settings": null,
+          "settings": {},
           "status": "SST_COMPLETE"
         }
       ],
@@ -72,22 +72,53 @@
       "steps": [
         {
           "name": "Recadrage",
-          "settings": null,
-          "status": "SST_NOTRUN"
+          "settings": {
+            "blurSize": [
+              null,
+              null
+            ],
+            "colorGamma": null,
+            "cropOverflow": null,
+            "flip": null,
+            "maxBigCCColorMean": null,
+            "maxBlockDist": null,
+            "maxBlurredCCArea": null,
+            "minBlockSize": null,
+            "minConnectedBlockSize": null,
+            "smallImageBlocksArea": null,
+            "whiteColorThreshold": null,
+            "whiteThreshold": null
+          },
+          "status": "SST_ERROR"
         },
         {
           "name": "Assemblage",
-          "settings": null,
+          "settings": {},
           "status": "SST_NOTRUN"
         },
         {
           "name": "Nettoyage",
-          "settings": null,
+          "settings": {},
           "status": "SST_NOTRUN"
         },
         {
           "name": "Finalisation",
-          "settings": null,
+          "settings": {
+            "alignmentH": null,
+            "alignmentV": null,
+            "bottomMarginCm": null,
+            "dpi": null,
+            "finalHeightCm": null,
+            "finalWidthCm": null,
+            "forcedBottomCm": null,
+            "forcedLeftCm": null,
+            "forcedRightCm": null,
+            "forcedTopCm": null,
+            "headerHeightCm": null,
+            "leftMarginCm": null,
+            "rightMarginCm": null,
+            "topMarginCm": null
+          },
           "status": "SST_NOTRUN"
         }
       ],
@@ -101,22 +132,53 @@
       "steps": [
         {
           "name": "Recadrage",
-          "settings": null,
+          "settings": {
+            "blurSize": [
+              null,
+              null
+            ],
+            "colorGamma": null,
+            "cropOverflow": null,
+            "flip": null,
+            "maxBigCCColorMean": null,
+            "maxBlockDist": null,
+            "maxBlurredCCArea": null,
+            "minBlockSize": null,
+            "minConnectedBlockSize": null,
+            "smallImageBlocksArea": null,
+            "whiteColorThreshold": null,
+            "whiteThreshold": null
+          },
           "status": "SST_COMPLETE"
         },
         {
           "name": "Assemblage",
-          "settings": null,
+          "settings": {},
           "status": "SST_WAITING"
         },
         {
           "name": "Nettoyage",
-          "settings": null,
+          "settings": {},
           "status": "SST_NOTRUN"
         },
         {
           "name": "Finalisation",
-          "settings": null,
+          "settings": {
+            "alignmentH": null,
+            "alignmentV": null,
+            "bottomMarginCm": null,
+            "dpi": null,
+            "finalHeightCm": null,
+            "finalWidthCm": null,
+            "forcedBottomCm": null,
+            "forcedLeftCm": null,
+            "forcedRightCm": null,
+            "forcedTopCm": null,
+            "headerHeightCm": null,
+            "leftMarginCm": null,
+            "rightMarginCm": null,
+            "topMarginCm": null
+          },
           "status": "SST_NOTRUN"
         }
       ],
@@ -130,22 +192,22 @@
       "steps": [
         {
           "name": "Recadrage",
-          "settings": null,
+          "settings": {},
           "status": "SST_NOTRUN"
         },
         {
           "name": "Assemblage",
-          "settings": null,
+          "settings": {},
           "status": "SST_NOTRUN"
         },
         {
           "name": "Nettoyage",
-          "settings": null,
+          "settings": {},
           "status": "SST_NOTRUN"
         },
         {
           "name": "Finalisation",
-          "settings": null,
+          "settings": {},
           "status": "SST_NOTRUN"
         }
       ],
@@ -158,22 +220,53 @@
       "steps": [
         {
           "name": "Recadrage",
-          "settings": null,
+          "settings": {
+            "blurSize": [
+              null,
+              null
+            ],
+            "colorGamma": null,
+            "cropOverflow": null,
+            "flip": null,
+            "maxBigCCColorMean": null,
+            "maxBlockDist": null,
+            "maxBlurredCCArea": null,
+            "minBlockSize": null,
+            "minConnectedBlockSize": null,
+            "smallImageBlocksArea": null,
+            "whiteColorThreshold": null,
+            "whiteThreshold": null
+          },
           "status": "SST_NOTRUN"
         },
         {
           "name": "Assemblage",
-          "settings": null,
+          "settings": {},
           "status": "SST_NOTRUN"
         },
         {
           "name": "Nettoyage",
-          "settings": null,
+          "settings": {},
           "status": "SST_NOTRUN"
         },
         {
           "name": "Finalisation",
-          "settings": null,
+          "settings": {
+            "alignmentH": null,
+            "alignmentV": null,
+            "bottomMarginCm": null,
+            "dpi": null,
+            "finalHeightCm": null,
+            "finalWidthCm": null,
+            "forcedBottomCm": null,
+            "forcedLeftCm": null,
+            "forcedRightCm": null,
+            "forcedTopCm": null,
+            "headerHeightCm": null,
+            "leftMarginCm": null,
+            "rightMarginCm": null,
+            "topMarginCm": null
+          },
           "status": "SST_NOTRUN"
         }
       ],
@@ -186,22 +279,22 @@
       "steps": [
         {
           "name": "Recadrage",
-          "settings": null,
+          "settings": {},
           "status": "SST_NOTRUN"
         },
         {
           "name": "Assemblage",
-          "settings": null,
+          "settings": {},
           "status": "SST_NOTRUN"
         },
         {
           "name": "Nettoyage",
-          "settings": null,
+          "settings": {},
           "status": "SST_NOTRUN"
         },
         {
           "name": "Finalisation",
-          "settings": null,
+          "settings": {},
           "status": "SST_NOTRUN"
         }
       ],
@@ -214,22 +307,22 @@
       "steps": [
         {
           "name": "Recadrage",
-          "settings": null,
+          "settings": {},
           "status": "SST_COMPLETE"
         },
         {
           "name": "Assemblage",
-          "settings": null,
+          "settings": {},
           "status": "SST_NOTRUN"
         },
         {
           "name": "Nettoyage",
-          "settings": null,
+          "settings": {},
           "status": "SST_COMPLETE"
         },
         {
           "name": "Finalisation",
-          "settings": null,
+          "settings": {},
           "status": "SST_COMPLETE"
         }
       ],
@@ -242,22 +335,22 @@
       "steps": [
         {
           "name": "Recadrage",
-          "settings": null,
+          "settings": {},
           "status": "SST_COMPLETE"
         },
         {
           "name": "Assemblage",
-          "settings": null,
+          "settings": {},
           "status": "SST_NOTRUN"
         },
         {
           "name": "Nettoyage",
-          "settings": null,
+          "settings": {},
           "status": "SST_COMPLETE"
         },
         {
           "name": "Finalisation",
-          "settings": null,
+          "settings": {},
           "status": "SST_COMPLETE"
         }
       ],
@@ -277,12 +370,12 @@
         },
         {
           "name": "Assemblage",
-          "settings": null,
+          "settings": {},
           "status": "SST_NOTRUN"
         },
         {
           "name": "Nettoyage",
-          "settings": null,
+          "settings": {},
           "status": "SST_WAITING"
         },
         {
@@ -297,5 +390,6 @@
       "subPage": 1
     }
   ],
+  "romanLimit": 2,
   "title": "Test"
 }

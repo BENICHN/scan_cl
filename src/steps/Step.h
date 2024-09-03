@@ -32,7 +32,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(StepSataus, {
 struct Step
 {
     StepSataus status = SST_NOTRUN;
-    json settings;
+    json settings = json::object();
 
 protected:
     int _pageId;

@@ -20,7 +20,7 @@ ProcessFragment::ProcessFragment(QWidget* parent) :
         const int newId = uniqueSelectedId(ui->pageNav->list()->selectionModel());
         ui->previewer->setPageId(newId);
         ui->timeline->setPageId(newId);
-        ui->propsEditor->setSource(PropsSource(in_place_index<PTY_PAGE>, newId));
+        ui->propsEditor->setSource(newId == -1 ? nullpropsource : PropsSource(in_place_index<PTY_PAGE>, newId));
     });
     connect(ui->actionD_marrer_la_selection, &QAction::triggered, [=]
     {
@@ -28,7 +28,7 @@ ProcessFragment::ProcessFragment(QWidget* parent) :
         auto& works = app().works();
         for (const auto& idx : ui->pageNav->list()->selectionModel()->selectedIndexes())
         {
-            works.enqueue({ ids.at(idx.row()), true, false });
+            works.enqueue({ids.at(idx.row()), true, false});
         }
     });
     connect(ui->actionD_marrer_une_tape_sur_la_s_lection, &QAction::triggered, [=]
@@ -37,7 +37,7 @@ ProcessFragment::ProcessFragment(QWidget* parent) :
         auto& works = app().works();
         for (const auto& idx : ui->pageNav->list()->selectionModel()->selectedIndexes())
         {
-            works.enqueue({ ids.at(idx.row()), false, false });
+            works.enqueue({ids.at(idx.row()), false, false});
         }
     });
     connect(ui->actionR_initialier_la_s_lection, &QAction::triggered, [=]
@@ -58,10 +58,6 @@ ProcessFragment::ProcessFragment(QWidget* parent) :
             return ids.at(idx.row());
         }) | str::to<vector<int>>();
         book.removePages(sids);
-    });
-    connect(ui->actionAcquisition, &QAction::triggered, [=]
-    {
-        (new ScanWidget)->showMaximized();
     });
 }
 

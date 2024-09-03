@@ -60,6 +60,11 @@ JsonStructure JsonStructure::fromJsonWithoutParents(const json& j, const path_t&
     }
 }
 
+bool StaticJsonModel::beforeEditJsonProperty(const JsonStructure::path_t& path, const json& value) const
+{
+    return true;
+}
+
 void StaticJsonModel::afterEditJsonProperty(const JsonStructure::path_t& path, const json& value) const
 {
 }

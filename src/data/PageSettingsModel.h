@@ -6,24 +6,24 @@
 #define PAGESETTINGSMODEL_H
 
 #include "StaticJsonModel.h"
+#include "../components/props/PropsEditorTypes.h"
 
 
 class PageSettingsModel final : public StaticJsonModel
 {
     Q_OBJECT
-    int _pageId = -1;
+    PropsSource _source;
 
 public:
-    explicit PageSettingsModel(int pageId, QObject* parent = nullptr);
     explicit PageSettingsModel(QObject* parent = nullptr);
 
-    [[nodiscard]] int pageId() const { return _pageId; }
-    void setPageId(int pageId);
+    [[nodiscard]] const auto& source() const { return _source; }
+    void setSource(const PropsSource& source);
 
 protected:
     void createJsonPlaceholder() const override;
     void createJson() const override;
-    bool beforeEditJsonProperty(const JsonStructure::path_t& path, const json& value) const override;
+    void afterEditJsonProperty(const JsonStructure::path_t& path, const json& value) const override;
     void createJsonDescriptor() const override;
 };
 

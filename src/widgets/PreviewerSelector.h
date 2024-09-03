@@ -28,6 +28,9 @@ class PreviewerSelector : public QWidget
         PWC_MIX
     };
 
+protected:
+    void paintEvent(QPaintEvent* event) override;
+
 public:
     [[nodiscard]] bool hasColor() const { return _hasColor; }
     [[nodiscard]] bool resMixed() const { return _resMixed; }
@@ -38,6 +41,9 @@ public:
 
     explicit PreviewerSelector(QWidget* parent = nullptr);
     ~PreviewerSelector() override;
+
+    QPoint position();
+    void setPosition(const QPoint& position);
 
 private:
     Ui::PreviewerSelector* ui;

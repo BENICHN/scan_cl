@@ -70,7 +70,6 @@
          </property>
          <addaction name="actionNouvelle_page"/>
          <addaction name="actionImporter_SEQ"/>
-         <addaction name="actionAcquisition"/>
          <addaction name="actionSupprimer_la_s_lection"/>
         </widget>
        </item>
@@ -81,6 +80,7 @@
          </property>
          <addaction name="actionD_marrer_la_selection"/>
          <addaction name="actionD_marrer_une_tape_sur_la_s_lection"/>
+         <addaction name="actionPr_visualiser_l_tape_suivante_de_la_s_lection"/>
          <addaction name="actionMettre_en_pause_la_s_lection"/>
          <addaction name="actionArr_ter_la_s_lection"/>
         </widget>
@@ -91,7 +91,6 @@
           <string>toolBar</string>
          </property>
          <addaction name="actionR_initialier_la_s_lection"/>
-         <addaction name="actionPr_visualiser_l_tape_suivante_de_la_s_lection"/>
          <addaction name="actionArr_ter_toutes_les_pages"/>
          <addaction name="actionMettre_en_pause_toutes_les_pages"/>
         </widget>
@@ -185,15 +184,6 @@
    </property>
    <property name="text">
     <string>Importer SEQ</string>
-   </property>
-  </action>
-  <action name="actionAcquisition">
-   <property name="icon">
-    <iconset resource="../../../../scan/resources.qrc">
-     <normaloff>:/icons/scan.png</normaloff>:/icons/scan.png</iconset>
-   </property>
-   <property name="text">
-    <string>Acquisition</string>
    </property>
   </action>
   <action name="actionD_marrer_la_selection">

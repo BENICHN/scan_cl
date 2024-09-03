@@ -216,6 +216,24 @@ int uniqueSelectedId(const QItemSelectionModel* model)
     return idxs.size() == 1 ? app().book().ids().at(idxs[0].row()) : -1;
 }
 
+// void updateKeys(json& src, const json& repl, const bool updateNulls)
+// {
+//     for (auto& kv : repl.items())
+//     {
+//         if (kv.value().is_null() && !updateNulls) continue;
+//         const auto it = src.find(kv.key());
+//         if (it == src.end() || updateNulls && it.value().is_null())
+//         {
+//             if (src.is_array()) src[stoi(kv.key())] = kv.value();
+//             else src[kv.key()] = kv.value();
+//         }
+//         else if (jsonIsContainer(kv.value()))
+//         {
+//             updateNewKeys(src[kv.key()], kv.value());
+//         }
+//     }
+// }
+
 void updateNewKeys(json& src, const json& repl, const bool updateNulls)
 {
     for (auto& kv : repl.items())
@@ -276,4 +294,24 @@ generator<QLayoutItem*> recursiveLayoutChildren(QLayout* layout)
             co_yield item;
         }
     }
+}
+
+const char* notation[] = {"i","iv","v","ix","x","xl","l","xc","c","cd","d","cm","m"};
+const int numbers[] = {1,4,5,9,10,40,50,90,100,400,500,900,1000};
+constexpr auto nbSize = arraySize(numbers);
+
+string intToRoman(int num)
+{
+    ostringstream res;
+    auto i = nbSize-1;
+    while(num>0){
+        const auto n = num/numbers[i];
+        for (int j = 0; j < n; ++j)
+        {
+            res << notation[i];
+        }
+        num-=n*numbers[i];
+        --i;
+    }
+    return res.str();
 }

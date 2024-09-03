@@ -13,13 +13,16 @@
 void PropsEditor::setSource(const PropsSource& source)
 {
     _source = source;
-    updateModel();
+    updateSource();
 }
 
 PropsEditor::PropsEditor(QWidget* parent) :
     QWidget(parent), ui(new Ui::PropsEditor)
 {
     ui->setupUi(this);
+    ui->treeView->setModel(new PageSettingsModel(this));
+    ui->treeView->setItemDelegate(new StaticJsonDelegate(this));
+    ui->treeView->header()->setSectionResizeMode(0, QHeaderView::Stretch);
 }
 
 PropsEditor::~PropsEditor()
@@ -27,23 +30,9 @@ PropsEditor::~PropsEditor()
     delete ui;
 }
 
-void PropsEditor::updateModel()
+void PropsEditor::updateSource()
 {
-    switch (_source.index())
-    {
-    case PTY_NONE:
-        ui->treeView->setModel(nullptr);
-        break;
-    case PTY_PAGE:
-        {
-            const int id = get<PTY_PAGE>(_source);
-            ui->treeView->setModel(new PageSettingsModel(id, this)); // ! delete model ?
-            ui->treeView->setItemDelegate(new StaticJsonDelegate(this));
-        }
-        break;
-    case PTY_NUMBER:
-        break;
-    }
-    ui->treeView->header()->setSectionResizeMode(0, QHeaderView::Stretch);
+    const auto model = qobject_cast<PageSettingsModel*>(ui->treeView->model());
+    model->setSource(_source);
     ui->treeView->expandAll();
 }

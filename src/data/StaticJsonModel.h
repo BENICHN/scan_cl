@@ -57,7 +57,7 @@ protected:
     void setJson(const json& j) const { _json = j; }
     void setJsonPlaceholder(const json& j) const { _jsonPlaceholder = j; }
     void setJsonDescriptor(const json& j) const { _jsonDescriptor = j; }
-    virtual bool beforeEditJsonProperty(const JsonStructure::path_t& path, const json& value) const = 0;
+    virtual bool beforeEditJsonProperty(const JsonStructure::path_t& path, const json& value) const;
     virtual void afterEditJsonProperty(const JsonStructure::path_t& path, const json& value) const;
 
 public:

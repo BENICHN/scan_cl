@@ -160,6 +160,8 @@ bool Book::insertPageBack(Page&& page)
 
 void Book::removePage(int id)
 {
+    cleanPage(id);
+    deletePageSourceIfNotUsed(id);
     _pages.erase(id);
     erase_if(_ids, [=](const auto elem) { return elem == id; });
     emit pageListChanged();
@@ -169,10 +171,32 @@ void Book::removePages(const vector<int>& ids)
 {
     for (const auto id : ids)
     {
+        cleanPage(id);
+        deletePageSourceIfNotUsed(id);
         _pages.erase(id);
         erase_if(_ids, [=](const auto elem) { return elem == id; });
     }
     emit pageListChanged();
+}
+
+void Book::deletePageSourceIfNotUsed(int id)
+{
+    const auto& p = page(id);
+    if (str::all_of(_pages, [&, id](const auto& kv)
+    {
+        return kv.second.id == id || kv.second.source != p.source;
+    }))
+    {
+        stf::remove(pageSourceBWPath(id));
+    }
+    if (!p.cgSource.has_value()) return;
+    if (str::all_of(_pages, [&, id](const auto& kv)
+    {
+        return kv.second.id == id || kv.second.cgSource != p.cgSource;
+    }))
+    {
+        stf::remove(pageSourceCGPath(id));
+    }
 }
 
 void Book::cleanPage(const int id)
@@ -193,6 +217,25 @@ void Book::resetPage(const int id)
         step->status = SST_NOTRUN;
     }
     emit pageStatusChanged(id);
+}
+
+void Book::setPageSettings(const int id, const json& json)
+{
+    for (const auto& step : _pages.at(id).steps)
+    {
+        const auto it = json.find(step->name());
+        if (it != json.end())
+        {
+            step->settings = *it;
+        }
+    }
+    emit pageSettingsChanged(id);
+}
+
+void Book::setPageSettings(const int id, const string& name, const json& json)
+{
+    _pages.at(id).step(name).settings = json;
+    emit pageSettingsChanged(id);
 }
 
 string Book::savingPath() const
@@ -217,20 +260,42 @@ void Book::loadFromRoot(const string& root)
 
 Book::Book()
 {
-    connect(this, &Book::pageStatusChanged, [=]
-    {
-        save();
-    });
-    connect(this, &Book::pageListChanged, [=]
-    {
-        save();
-    });
+    connect(this, &Book::pageStatusChanged, this, &Book::save);
+    connect(this, &Book::pageListChanged, this, &Book::save);
+    connect(this, &Book::pageSettingsChanged, this, &Book::save);
+    connect(this, &Book::romanLimitChanged, this, &Book::save);
+    connect(this, &Book::titleChanged, this, &Book::save);
+    connect(this, &Book::globalSettingsChanged, this, &Book::save);
 }
 
 json Book::globalSettings(const string& name) const
 {
     if (_globalSettings.contains(name)) return _globalSettings.at(name);
     return json::object();
+}
+
+void Book::setGlobalSettings(const json& value)
+{
+    _globalSettings = value;
+    emit globalSettingsChanged(_globalSettings);
+}
+
+void Book::setGlobalSettings(const string& name, const json& value)
+{
+    _globalSettings[name] = value;
+    emit globalSettingsChanged(_globalSettings);
+}
+
+void Book::setTitle(const string& title)
+{
+    _title = title;
+    emit titleChanged(_title);
+}
+
+void Book::setRomanLimit(int romanLimit)
+{
+    _romanLimit = romanLimit;
+    emit romanLimitChanged(_romanLimit);
 }
 
 auto&& getOrCreate(auto&& dir)
@@ -527,6 +592,7 @@ Page from_json(const json& j)
 
 void to_json(json& j, const Book& book)
 {
+    j["romanLimit"] = book._romanLimit;
     j["title"] = book._title;
     j["globalSettings"] = book._globalSettings;
     vector<json> pages(book._ids.size());
@@ -540,6 +606,7 @@ void to_json(json& j, const Book& book)
 void Book::loadFromJson(const json& j)
 {
     _title = j.at("title");
+    _romanLimit = j.at("romanLimit");
     _globalSettings = j.at("globalSettings");
     const vector<json>& pages = j.at("pages");
     for (const auto& page : pages)

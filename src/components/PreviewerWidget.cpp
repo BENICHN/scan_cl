@@ -32,6 +32,9 @@ PreviewerWidget::PreviewerWidget(QWidget* parent) :
         updateImageAndRect(true, true); // !
     });
     updateSelector();
+    const auto ly = qobject_cast<QGridLayout*>(layout());
+    ly->removeWidget(ui->selector);
+    ly->addWidget(ui->selector, 0, 0, Qt::AlignRight | Qt::AlignTop);
 }
 
 PreviewerWidget::~PreviewerWidget()
@@ -178,9 +181,19 @@ void PreviewerWidget::keyPressEvent(QKeyEvent* event)
     switch (event->key())
     {
     case Qt::Key_Enter:
-        {
-            validateChoice();
-        }
+        validateChoice();
+        break;
+    case Qt::Key_Left:
+        ui->selector->setPosition(ui->selector->position() + QPoint{-1, 0});
+        break;
+    case Qt::Key_Right:
+        ui->selector->setPosition(ui->selector->position() + QPoint{1, 0});
+        break;
+    case Qt::Key_Up:
+        ui->selector->setPosition(ui->selector->position() + QPoint{0, 1});
+        break;
+    case Qt::Key_Down:
+        ui->selector->setPosition(ui->selector->position() + QPoint{0, -1});
         break;
     default:
         break;

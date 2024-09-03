@@ -15,4 +15,6 @@ enum PropsType
     PTY_NUMBER
 };
 
+inline auto nullpropsource = PropsSource(in_place_index<0>);
+
 #endif //PROPSEDITORTYPES_H

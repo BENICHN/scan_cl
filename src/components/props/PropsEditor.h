@@ -30,7 +30,7 @@ public:
     ~PropsEditor() override;
 
 private:
-    void updateModel();
+    void updateSource();
     Ui::PropsEditor* ui;
 };
 

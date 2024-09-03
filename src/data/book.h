@@ -141,21 +141,26 @@ class Book final : public QObject
     json _globalSettings;
     unordered_map<int, Page> _pages;
     vector<int> _ids;
+    int _romanLimit;
 
 public:
-    Book(); // !
-    json globalSettings(const string& name) const;
+    Book();
 
     [[nodiscard]] auto& root() const { return _root; }
-    void setRoot(const string& root) { _root = root; } // !
+    // void setRoot(const string& root) { _root = root; } // !
     [[nodiscard]] auto& title() const { return _title; }
-    void setTitle(const string& title) { _title = title; } // !
+    void setTitle(const string& title);
+    [[nodiscard]] auto& romanLimit() const { return _romanLimit; }
+    void setRomanLimit(int romanLimit);
 
     [[nodiscard]] auto& page(int id) const { return _pages.at(id); }
     [[nodiscard]] auto& pageAt(int index) const { return page(_ids[index]); }
     [[nodiscard]] auto& ids() const { return _ids; }
     [[nodiscard]] auto& pages() const { return _pages; }
     [[nodiscard]] auto& globalSettings() const { return _globalSettings; }
+    json globalSettings(const string& name) const;
+    void setGlobalSettings(const json& value);
+    void setGlobalSettings(const string& name, const json& value);
 
     // dirs
     [[nodiscard]] string sourcesDir() const;
@@ -204,20 +209,30 @@ public:
     bool insertPageBack(Page&& page);
     void removePage(int id);
     void removePages(const vector<int>& ids);
+    void deletePageSourceIfNotUsed(int id);
     void cleanPage(int id);
     void resetPage(int id);
+    void setPageSettings(int id, const json& json);
+    void setPageSettings(int id, const string& name, const json& json);
 
     // saving
     [[nodiscard]] string savingPath() const;
-    void save();
     void loadFromRoot(const string& root);
+
 signals:
     void choiceAccepted(int pageId, bool accepted);
     void pageStatusChanged(int pageId);
+    void pageSettingsChanged(int pageId);
     void pageListChanged();
+    void romanLimitChanged(int romanLimit);
+    void globalSettingsChanged(const nlohmann::json& globalSettings);
+    void titleChanged(const std::string& title);
 
 public:
     friend void to_json(json& j, const Book& book);
+
+public slots:
+    void save();
 
 private:
     void loadFromJson(const json& j);

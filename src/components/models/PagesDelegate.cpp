@@ -46,8 +46,11 @@ void PagesDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option,
             painter->setPen({Color::br3, 2});
             painter->drawPath(imgRR);
             painter->setPen(Qt::black);
+            const int i = index.row() + 1;
+            const int lim = book.romanLimit();
+            const auto text = i <= lim ? intToRoman(i) : to_string(i - lim);
             painter->drawText(QRect{16, 152, r.width() - 32, 16}.translated(tl), Qt::AlignCenter,
-                              to_string(index.row()).c_str());
+                              text.c_str());
             {
                 QColor c;
                 switch (page.status())

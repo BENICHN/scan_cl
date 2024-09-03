@@ -33,6 +33,7 @@ json Step::toJson()
 
 void Step::restoreJson(const json& j)
 {
-    settings = j.at("settings");
+    const auto& stgs = j.at("settings");
+    settings = stgs.is_null() ? json::object() : stgs;
     status = j.at("status");
 }

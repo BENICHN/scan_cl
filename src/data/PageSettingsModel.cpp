@@ -6,19 +6,15 @@
 #include "../app.h"
 #include "../utils.h"
 
-PageSettingsModel::PageSettingsModel(int pageId, QObject* parent) : StaticJsonModel(parent), _pageId(pageId)
+PageSettingsModel::PageSettingsModel(QObject* parent) : StaticJsonModel(parent)
 {
 }
 
-PageSettingsModel::PageSettingsModel(QObject* parent) : PageSettingsModel(-1, parent)
+void PageSettingsModel::setSource(const PropsSource& source)
 {
-}
-
-void PageSettingsModel::setPageId(const int pageId)
-{
-    if (pageId != _pageId)
+    if (source != _source)
     {
-        _pageId = pageId;
+        _source = source;
         resetJson();
     }
 }
@@ -29,27 +25,40 @@ void PageSettingsModel::createJsonPlaceholder() const
 
 void PageSettingsModel::createJson() const
 {
-    if (_pageId == -1)
+    switch (_source.index())
     {
+    case PTY_NONE:
         StaticJsonModel::createJson();
         StaticJsonModel::createJsonPlaceholder();
-    }
-    else
-    {
-        auto pl = app().book().globalSettings();
-        setJsonPlaceholder(pl);
-        for (const auto& kv : pl.items())
+        break;
+    case PTY_PAGE:
         {
-            const auto& step = app().book().page(_pageId).step(kv.key());
-            nullifyKeys(pl[kv.key()], step.settings);
+            const int pageId = get<PTY_PAGE>(_source);
+            auto pl = app().book().globalSettings();
+            setJsonPlaceholder(pl);
+            for (const auto& kv : pl.items())
+            {
+                const auto& step = app().book().page(pageId).step(kv.key());
+                nullifyKeys(pl[kv.key()], step.settings);
+                pl[kv.key()].update(step.settings);
+            }
+            setJson(pl);
         }
-        setJson(pl);
+        break;
     }
 }
 
-bool PageSettingsModel::beforeEditJsonProperty(const JsonStructure::path_t& path, const json& value) const
+void PageSettingsModel::afterEditJsonProperty(const JsonStructure::path_t& path, const json& value) const
 {
-    return false;
+    switch (_source.index())
+    {
+    case PTY_PAGE:
+        {
+            const int pageId = get<PTY_PAGE>(_source);
+            app().book().setPageSettings(pageId, jSON());
+        }
+        break;
+    }
 }
 
 void PageSettingsModel::createJsonDescriptor() const

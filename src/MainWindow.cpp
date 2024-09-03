@@ -16,6 +16,18 @@ MainWindow::MainWindow(QWidget* parent) :
     QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    connect(ui->buttonGroup, &QButtonGroup::buttonToggled, [=]
+    {
+        if (ui->btnProcess->isChecked())
+        {
+            ui->stackedWidget->setCurrentIndex(0);
+        }
+        else if (ui->btnScan->isChecked())
+        {
+            ui->stackedWidget->setCurrentIndex(1);
+        }
+    });
+    ui->btnProcess->setChecked(true);
     initScanner().then([=] { searchDevices(); });
 }
 

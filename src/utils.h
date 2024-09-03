@@ -126,4 +126,9 @@ bool jsonIsContainer(const json& j);
 
 generator<QLayoutItem*> recursiveLayoutChildren(QLayout* layout);
 
+template <typename T, size_t N>
+constexpr size_t arraySize(T (&)[N]) { return N; }
+
+string intToRoman(int num);
+
 #endif //UTILS_H

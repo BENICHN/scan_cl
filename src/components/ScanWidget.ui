@@ -34,7 +34,11 @@
         </size>
        </property>
        <property name="text">
-        <string>Down</string>
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../../../../../scan/resources.qrc">
+         <normaloff>:/icons/expand.png</normaloff>:/icons/expand.png</iconset>
        </property>
       </widget>
      </item>
@@ -159,7 +163,11 @@
         </size>
        </property>
        <property name="text">
-        <string>Up</string>
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../../../../../scan/resources.qrc">
+         <normaloff>:/icons/reduce.png</normaloff>:/icons/reduce.png</iconset>
        </property>
       </widget>
      </item>
@@ -178,7 +186,34 @@
         </size>
        </property>
        <property name="text">
-        <string>Go</string>
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../../../../../scan/resources.qrc">
+         <normaloff>:/icons/play.png</normaloff>:/icons/play.png</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="stopBtn">
+       <property name="minimumSize">
+        <size>
+         <width>32</width>
+         <height>32</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>32</width>
+         <height>32</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../../../../../scan/resources.qrc">
+         <normaloff>:/icons/stop.png</normaloff>:/icons/stop.png</iconset>
        </property>
       </widget>
      </item>
@@ -382,7 +417,9 @@
   <tabstop>scanMultBox</tabstop>
   <tabstop>delayBox</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../../../../../scan/resources.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>scanMultBox</sender>

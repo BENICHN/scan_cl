@@ -67,7 +67,6 @@ public:
     json& placeholder() const;
     json& descriptor() const;
     JsonStructure& structure() const;
-    void resetJson();
 
     QModelIndex index(int row, int column, const QModelIndex& parent) const override;
     QModelIndex parent(const QModelIndex& child) const override;
@@ -79,6 +78,12 @@ public:
     QVariant data(const QModelIndex& index, int role) const override;
 
     static json defaultDescriptor(const json& j, const json& templ = {});
+
+public slots:
+    void resetJson();
+
+signals:
+    void jsonReset();
 };
 
 

@@ -27,6 +27,12 @@ PreviewerWidget::PreviewerWidget(QWidget* parent) :
             updateSelector();
         }
     });
+    connect(&app().book(), &Book::bookReset, [=]
+    {
+        _pageId = -1;
+        updateImageAndRect(true, true); // !
+        updateSelector();
+    });
     connect(ui->selector, &PreviewerSelector::selectionChanged, [=]
     {
         updateImageAndRect(true, true); // !

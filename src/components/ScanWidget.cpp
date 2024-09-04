@@ -83,6 +83,7 @@ ScanWidget::ScanWidget(QWidget* parent) :
     ui->setupUi(this);
     ui->lIV->setEditable(false);
     ui->visButton->hide();
+    ui->stopBtn->hide();
 
     ui->rLayout->addWidget(ui->lIcon, 0, 0, Qt::AlignRight | Qt::AlignTop);
 
@@ -120,6 +121,10 @@ ScanWidget::ScanWidget(QWidget* parent) :
     connect(ui->visButton, &QPushButton::clicked, [=]
     {
         setTopCollapsed(false);
+    });
+    connect(ui->stopBtn, &QPushButton::clicked, [=]
+    {
+        stopScanning();
     });
     connect(&app().scanner(), &Scanner::pageScanned, [=]
     {
@@ -302,6 +307,8 @@ void ScanWidget::startScanning()
     {
         _scanning = true;
         setTopCollapsed(true);
+        ui->playBtn->hide();
+        ui->stopBtn->show();
         scanLoop();
     }
 }
@@ -400,6 +407,8 @@ Task<> ScanWidget::scanLoop()
         scanningColor = !scanningColor && sclr;
     }
     setScanningIcon(nullopt);
+    ui->playBtn->show();
+    ui->stopBtn->hide();
 }
 
 void ScanWidget::keyPressEvent(QKeyEvent* event)

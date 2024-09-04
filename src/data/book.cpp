@@ -252,10 +252,78 @@ void Book::save()
 
 void Book::loadFromRoot(const string& root)
 {
+    close();
     ifstream file(root + "/book.json");
     const auto j = json::parse(file);
     _root = root;
     loadFromJson(j);
+}
+
+void Book::close()
+{
+    _root = "";
+    _title = "";
+    _globalSettings = json::object();
+    _pages.clear();
+    _ids.clear();
+    _romanLimit = 0;
+}
+
+Book::Book(const string& root, const string& title, const json& global_settings, int roman_limit): _root(root),
+    _title(title),
+    _globalSettings(global_settings),
+    _romanLimit(roman_limit)
+{
+}
+
+Book Book::newBook(const string& root)
+{
+    return {
+        root,
+        "Sans titre",
+        {
+            {
+                "Finalisation", {
+                    {"alignmentH", "l"},
+                    {"alignmentV", "t"},
+                    {"bottomMarginCm", 1.4},
+                    {"dpi", 600},
+                    {"finalHeightCm", 23.3},
+                    {"finalWidthCm", 15.0},
+                    {"forcedBottomCm", -1.0},
+                    {"forcedLeftCm", -1.0},
+                    {"forcedRightCm", -1.0},
+                    {"forcedTopCm", -1.0},
+                    {"headerHeightCm", 2.75},
+                    {"leftMarginCm", 1.7},
+                    {"rightMarginCm", 1.7},
+                    {"topMarginCm", 1.4},
+                }
+            },
+            {
+                "Recadrage", {
+                    {
+                        "blurSize", {
+                            110,
+                            12
+                        }
+                    },
+                    {"colorGamma", 0.5},
+                    {"cropOverflow", 50},
+                    {"flip", true},
+                    {"maxBigCCColorMean", 15000},
+                    {"maxBlockDist", 60},
+                    {"maxBlurredCCArea", 4000},
+                    {"minBlockSize", 10},
+                    {"minConnectedBlockSize", 250},
+                    {"smallImageBlocksArea", 20},
+                    {"whiteColorThreshold", 240},
+                    {"whiteThreshold", 234}
+                }
+            }
+        },
+        0,
+    };
 }
 
 Book::Book()
@@ -266,6 +334,11 @@ Book::Book()
     connect(this, &Book::romanLimitChanged, this, &Book::save);
     connect(this, &Book::titleChanged, this, &Book::save);
     connect(this, &Book::globalSettingsChanged, this, &Book::save);
+
+    connect(this, &Book::bookReset, this, &Book::pageListChanged);
+    connect(this, &Book::bookReset, this, [=] { emit romanLimitChanged(_romanLimit); });
+    connect(this, &Book::bookReset, this, [=] { emit titleChanged(_title); });
+    connect(this, &Book::bookReset, this, [=] { emit globalSettingsChanged(_globalSettings); });
 }
 
 json Book::globalSettings(const string& name) const
@@ -616,6 +689,6 @@ void Book::loadFromJson(const json& j)
         _pages.emplace(id, std::move(p));
         _ids.emplace_back(id);
     }
-    emit pageListChanged();
+    emit bookReset();
     // ! signals
 }

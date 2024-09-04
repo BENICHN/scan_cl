@@ -7,7 +7,28 @@
 int main(int argc, char* argv[])
 {
     App a(argc, argv);
-    a.book().loadFromRoot("/home/benichn/prog/cpp/scan/testBook");
+    if (argc>0)
+    {
+        const auto fn = argv[0];
+        if (std::filesystem::exists(fn))
+        {
+            const auto p = path(fn);
+            if (is_directory(p))
+            {
+                if (exists(p/"book.json"))
+                {
+                    a.book().loadFromRoot(p);
+                }
+            }
+            else
+            {
+                if (p.filename() == "book.json")
+                {
+                    a.book().loadFromRoot(p.parent_path());
+                }
+            }
+        }
+    }
     a.mainWindow().showMaximized();
     int res = QApplication::exec();
     a.book().save();

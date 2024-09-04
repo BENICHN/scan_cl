@@ -12,7 +12,7 @@
       "forcedRightCm": -1.0,
       "forcedTopCm": -1.0,
       "headerHeightCm": 2.75,
-      "leftMarginCm": 1.7000000476837158,
+      "leftMarginCm": 1.7,
       "rightMarginCm": 1.7000000476837158,
       "topMarginCm": 1.399999976158142
     },
@@ -149,12 +149,12 @@
             "whiteColorThreshold": null,
             "whiteThreshold": null
           },
-          "status": "SST_COMPLETE"
+          "status": "SST_NOTRUN"
         },
         {
           "name": "Assemblage",
           "settings": {},
-          "status": "SST_WAITING"
+          "status": "SST_NOTRUN"
         },
         {
           "name": "Nettoyage",
@@ -390,6 +390,6 @@
       "subPage": 1
     }
   ],
-  "romanLimit": 2,
+  "romanLimit": 3,
   "title": "Test"
 }

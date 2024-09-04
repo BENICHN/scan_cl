@@ -171,10 +171,7 @@ void ScanOptionsModel::createJsonDescriptor() const
 
 ScanOptionsModel::ScanOptionsModel(QObject* parent) : StaticJsonModel(parent)
 {
-    connect(&app().scanner(), &Scanner::currentDeviceChanged, [=]
-    {
-        resetJson();
-    });
+    connect(&app().scanner(), &Scanner::currentDeviceChanged, this, &StaticJsonModel::resetJson);
     connect(&app().appSettings(), &AppSettings::scanOptionsChanged, [=](const auto&, auto mode)
     {
         if (initialized() && _mode != PT_BLACK && mode == PT_BLACK)

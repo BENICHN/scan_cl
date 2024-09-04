@@ -21,6 +21,11 @@ TimelineWidget::TimelineWidget(QWidget* parent) :
             update();
         }
     });
+    connect(&app().book(), &Book::bookReset, [=]
+    {
+        _pageId = -1;
+        update();
+    });
     // ui->stepAssembl->setStyleSheet(R"(
     //     QPushButton {
     //         background-color: red;

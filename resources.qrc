@@ -22,5 +22,10 @@
         <file>icons/sB.svg</file>
         <file>icons/sG.svg</file>
         <file>icons/sC.svg</file>
+        <file>icons/book.png</file>
+        <file>icons/menu.png</file>
+        <file>icons/pages.png</file>
+        <file>icons/reduce.png</file>
+        <file>icons/expand.png</file>
     </qresource>
 </RCC>

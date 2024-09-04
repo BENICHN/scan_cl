@@ -227,6 +227,7 @@ signals:
     void romanLimitChanged(int romanLimit);
     void globalSettingsChanged(const nlohmann::json& globalSettings);
     void titleChanged(const std::string& title);
+    void bookReset();
 
 public:
     friend void to_json(json& j, const Book& book);
@@ -236,6 +237,11 @@ public slots:
 
 private:
     void loadFromJson(const json& j);
+    void close();
+    Book(const string& root, const string& title, const json& global_settings, int roman_limit);
+
+public:
+    static Book newBook(const string& root);
 };
 
 #endif //BOOK_H

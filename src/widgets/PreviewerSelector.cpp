@@ -152,7 +152,7 @@ void PreviewerSelector::updateButtons()
         {
             ui->resMixButton->setChecked(true);
         }
-        else if (selected == ui->resCGButton) { ui->resBwButton->setVisible(true); }
+        else if (selected == ui->resCGButton) { ui->resBwButton->setChecked(true); }
     }
 }
 

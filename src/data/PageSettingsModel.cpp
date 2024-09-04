@@ -8,6 +8,11 @@
 
 PageSettingsModel::PageSettingsModel(QObject* parent) : StaticJsonModel(parent)
 {
+    connect(&app().book(), &Book::globalSettingsChanged, this, &StaticJsonModel::resetJson);
+    connect(&app().book(), &Book::bookReset, [=]
+    {
+        setSource(nullpropsource);
+    });
 }
 
 void PageSettingsModel::setSource(const PropsSource& source)

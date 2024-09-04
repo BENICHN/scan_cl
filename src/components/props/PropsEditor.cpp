@@ -23,6 +23,10 @@ PropsEditor::PropsEditor(QWidget* parent) :
     ui->treeView->setModel(new PageSettingsModel(this));
     ui->treeView->setItemDelegate(new StaticJsonDelegate(this));
     ui->treeView->header()->setSectionResizeMode(0, QHeaderView::Stretch);
+    connect(qobject_cast<StaticJsonModel*>(ui->treeView->model()), &StaticJsonModel::jsonReset, [=]
+    {
+        ui->treeView->expandAll();
+    });
 }
 
 PropsEditor::~PropsEditor()
@@ -34,5 +38,4 @@ void PropsEditor::updateSource()
 {
     const auto model = qobject_cast<PageSettingsModel*>(ui->treeView->model());
     model->setSource(_source);
-    ui->treeView->expandAll();
 }

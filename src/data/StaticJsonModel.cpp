@@ -125,6 +125,7 @@ void StaticJsonModel::resetJson()
 {
     resetJsonInternal();
     endResetModel();
+    emit jsonReset();
 }
 
 void StaticJsonModel::createJsonDescriptor() const

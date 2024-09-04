@@ -113,6 +113,15 @@ add_executable(scan
         src/widgets/ScanButtonsWidget.h
         src/data/AppSettings.cpp
         src/data/AppSettings.h
+        src/components/BookEditor.cpp
+        src/components/BookEditor.h
+        src/components/BookEditor.ui
+        src/components/models/BookEditorModel.cpp
+        src/components/models/BookEditorModel.h
+        src/dialogs/OpenDialog.cpp
+        src/dialogs/OpenDialog.h
+        src/dialogs/NewDialog.cpp
+        src/dialogs/NewDialog.h
 )
 target_link_libraries(scan
         Qt::Core

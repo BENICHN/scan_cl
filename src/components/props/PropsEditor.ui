@@ -13,18 +13,8 @@
   <property name="windowTitle">
    <string>PropsEditor</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <widget class="QLabel" name="titleLabel">
-     <property name="text">
-      <string>Titre</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="3" column="0" colspan="2">
     <widget class="QTreeView" name="treeView">
      <property name="alternatingRowColors">
       <bool>true</bool>
@@ -38,6 +28,66 @@
      <attribute name="headerStretchLastSection">
       <bool>false</bool>
      </attribute>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QComboBox" name="modeSelector">
+     <item>
+      <property name="text">
+       <string>Bitonal</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Nuances de gris</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Couleur</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Source bitonal :</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Mode :</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="cgLabel">
+     <property name="text">
+      <string>Source gris/couleur :</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QPlainTextEdit" name="bwEdit">
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>25</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QPlainTextEdit" name="cgEdit">
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>25</height>
+      </size>
+     </property>
     </widget>
    </item>
   </layout>

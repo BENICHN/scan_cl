@@ -238,6 +238,24 @@ void Book::setPageSettings(const int id, const string& name, const json& json)
     emit pageSettingsChanged(id);
 }
 
+void Book::setPageMode(int id, PageColorMode mode)
+{
+    _pages.at(id).colorMode = mode;
+    emit pageModeChanged(id, mode);
+}
+
+void Book::setPageBWSource(int id, const string& source)
+{
+    _pages.at(id).source = source;
+    emit pageBWSourceChanged(id, source);
+}
+
+void Book::setPageCGSource(int id, const optional<string>& source)
+{
+    _pages.at(id).cgSource = source;
+    emit pageCGSourceChanged(id, source);
+}
+
 string Book::savingPath() const
 {
     return _root + "/book.json";
@@ -334,6 +352,9 @@ Book::Book()
     connect(this, &Book::romanLimitChanged, this, &Book::save);
     connect(this, &Book::titleChanged, this, &Book::save);
     connect(this, &Book::globalSettingsChanged, this, &Book::save);
+    connect(this, &Book::pageModeChanged, this, &Book::save);
+    connect(this, &Book::pageBWSourceChanged, this, &Book::save);
+    connect(this, &Book::pageCGSourceChanged, this, &Book::save);
 
     connect(this, &Book::bookReset, this, &Book::pageListChanged);
     connect(this, &Book::bookReset, this, [=] { emit romanLimitChanged(_romanLimit); });

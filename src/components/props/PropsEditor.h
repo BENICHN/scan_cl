@@ -7,6 +7,7 @@
 
 #include <QWidget>
 #include "PropsEditorTypes.h"
+#include "../../data/book.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -31,6 +32,7 @@ public:
 
 private:
     void updateSource();
+    void updateMode(PageColorMode mode);
     Ui::PropsEditor* ui;
 };
 

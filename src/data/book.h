@@ -214,6 +214,9 @@ public:
     void resetPage(int id);
     void setPageSettings(int id, const json& json);
     void setPageSettings(int id, const string& name, const json& json);
+    void setPageMode(int id, PageColorMode mode);
+    void setPageBWSource(int id, const string& source);
+    void setPageCGSource(int id, const optional<string>& source);
 
     // saving
     [[nodiscard]] string savingPath() const;
@@ -223,6 +226,9 @@ signals:
     void choiceAccepted(int pageId, bool accepted);
     void pageStatusChanged(int pageId);
     void pageSettingsChanged(int pageId);
+    void pageModeChanged(int id, PageColorMode mode);
+    void pageBWSourceChanged(int id, const std::string& source);
+    void pageCGSourceChanged(int id, const optional<std::string>& source);
     void pageListChanged();
     void romanLimitChanged(int romanLimit);
     void globalSettingsChanged(const nlohmann::json& globalSettings);

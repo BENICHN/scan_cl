@@ -21,6 +21,13 @@ TimelineWidget::TimelineWidget(QWidget* parent) :
             update();
         }
     });
+    connect(&app().book(), &Book::pageModeChanged, [=](int pageId)
+    {
+        if (pageId == _pageId)
+        {
+            update();
+        }
+    });
     connect(&app().book(), &Book::bookReset, [=]
     {
         _pageId = -1;

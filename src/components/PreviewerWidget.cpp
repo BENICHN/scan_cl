@@ -23,15 +23,23 @@ PreviewerWidget::PreviewerWidget(QWidget* parent) :
     {
         if (pageId == _pageId) // !
         {
-            updateImageAndRect(true, true); // !
             updateSelector();
+            updateImageAndRect(true, true); // !
+        }
+    });
+    connect(&app().book(), &Book::pageModeChanged, [=](int pageId)
+    {
+        if (pageId == _pageId) // !
+        {
+            updateSelector();
+            updateImageAndRect(true, true); // !
         }
     });
     connect(&app().book(), &Book::bookReset, [=]
     {
         _pageId = -1;
-        updateImageAndRect(true, true); // !
         updateSelector();
+        updateImageAndRect(true, true); // !
     });
     connect(ui->selector, &PreviewerSelector::selectionChanged, [=]
     {
@@ -51,8 +59,8 @@ PreviewerWidget::~PreviewerWidget()
 void PreviewerWidget::setPageId(const int id)
 {
     _pageId = id;
-    updateImageAndRect(true, true);
     updateSelector();
+    updateImageAndRect(true, true);
 }
 
 // void PreviewerWidget::setAskSettings(const AskSettings askSettings)

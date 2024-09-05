@@ -9,10 +9,16 @@
 
 CCStats& CleaningStep::stats() const
 {
-    if (!_stats.has_value())
-        _stats = connectedComponentsWithStats(
-            imread(app().book().pageGeneratedBigsMaskPath(_pageId), cv::IMREAD_GRAYSCALE));
-    return _stats.value();
+    const auto path = app().book().pageGeneratedBigsMaskPath(_pageId);
+    const auto t = stf::last_write_time(path);
+    if (!_stats.has_value() || _stats.value().lastWriteTime != t)
+    {
+        _stats = {
+            t,
+            connectedComponentsWithStats(imread(path, cv::IMREAD_GRAYSCALE))
+        };
+    }
+    return _stats.value().stats;
 }
 
 CleaningStep::CleaningStep(const int pageId): Step(pageId)

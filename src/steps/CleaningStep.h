@@ -7,10 +7,15 @@
 #include "Step.h"
 #include "../imports/opencvimports.h"
 
+struct CCStatsWithTimestamp
+{
+    stf::file_time_type lastWriteTime;
+    CCStats stats;
+};
 
 class CleaningStep final : public Step {
     // vector<int> _selectedElements;
-    mutable optional<CCStats> _stats;
+    mutable optional<CCStatsWithTimestamp> _stats;
     CCStats& stats() const;
 
 public:

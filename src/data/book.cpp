@@ -122,8 +122,9 @@ PageStatus Page::status() const
 //     return pages[index].id;
 // }
 
-Task<StepSataus> Book::runPage(const int id)
+Task<StepSataus> Book::runPage(const Work& wk)
 {
+    const auto id = wk.pageId;
     auto& p = _pages.at(id);
     if (auto* nextStep = p.nextStep())
     {
@@ -132,6 +133,10 @@ Task<StepSataus> Book::runPage(const int id)
         emit pageStatusChanged(id);
         setPageLastError(id, nullopt);
         const auto res = co_await nextStep->run();
+        if (wk.canceled())
+        {
+            co_return SST_ERROR;
+        }
         nextStep->status = res;
         emit pageStatusChanged(id);
         co_return res;
@@ -161,6 +166,7 @@ bool Book::insertPageBack(Page&& page)
 
 void Book::removePage(int id)
 {
+    app().works().cancel(id);
     cleanPage(id);
     deletePageSourceIfNotUsed(id);
     _pages.erase(id);
@@ -172,6 +178,7 @@ void Book::removePages(const vector<int>& ids)
 {
     for (const auto id : ids)
     {
+        app().works().cancel(id);
         cleanPage(id);
         deletePageSourceIfNotUsed(id);
         _pages.erase(id);
@@ -211,6 +218,7 @@ void Book::cleanPage(const int id)
 
 void Book::resetPage(const int id)
 {
+    app().works().cancel(id);
     setPageLastError(id, nullopt);
     cleanPage(id);
     const auto& p = page(id);

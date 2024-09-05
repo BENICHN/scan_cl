@@ -5,6 +5,7 @@
 #include "Step.h"
 
 #include "../app.h"
+#include "../utils.h"
 
 const Page& Step::page() const
 {
@@ -18,7 +19,7 @@ Step::Step(const int pageId): _pageId(pageId)
 json Step::realSettings() const
 {
     auto res = app().book().globalSettings(name());
-    if (settings.is_object()) res.update(settings);
+    if (settings.is_object()) updateExceptNulls(res, settings);
     return res;
 }
 

@@ -277,6 +277,25 @@ bool jsonIsContainer(const json& j)
     return j.is_array() || j.is_object();
 }
 
+void updateExceptNulls(json& src, const json& repl)
+{
+    for (const auto& kv : repl.items())
+    {
+        const auto it = src.find(kv.key());
+        if (!kv.value().is_null() && it != src.end())
+        {
+            if (jsonIsContainer(kv.value()))
+            {
+                updateExceptNulls(src[kv.key()], kv.value());
+            }
+            else
+            {
+                src[kv.key()] = kv.value();
+            }
+        }
+    }
+}
+
 generator<QLayoutItem*> recursiveLayoutChildren(QLayout* layout)
 {
     for (int i = 0; i < layout->count(); ++i)
@@ -296,21 +315,22 @@ generator<QLayoutItem*> recursiveLayoutChildren(QLayout* layout)
     }
 }
 
-const char* notation[] = {"i","iv","v","ix","x","xl","l","xc","c","cd","d","cm","m"};
-const int numbers[] = {1,4,5,9,10,40,50,90,100,400,500,900,1000};
+const char* notation[] = {"i", "iv", "v", "ix", "x", "xl", "l", "xc", "c", "cd", "d", "cm", "m"};
+const int numbers[] = {1, 4, 5, 9, 10, 40, 50, 90, 100, 400, 500, 900, 1000};
 constexpr auto nbSize = arraySize(numbers);
 
 string intToRoman(int num)
 {
     ostringstream res;
-    auto i = nbSize-1;
-    while(num>0){
-        const auto n = num/numbers[i];
+    auto i = nbSize - 1;
+    while (num > 0)
+    {
+        const auto n = num / numbers[i];
         for (int j = 0; j < n; ++j)
         {
             res << notation[i];
         }
-        num-=n*numbers[i];
+        num -= n * numbers[i];
         --i;
     }
     return res.str();

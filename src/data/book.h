@@ -16,6 +16,8 @@
 #include "../steps/CleaningStep.h"
 #include "../steps/FinalStep.h"
 
+struct Work;
+
 enum PageColorMode
 {
     PT_BLACK,
@@ -204,7 +206,7 @@ public:
 
     // mutations
     void applyChoiceToPage(int id, const SelectionInfo& selection);
-    Task<StepSataus> runPage(int id);
+    Task<StepSataus> runPage(const Work& wk);
     bool insertPage(int index, Page&& page);
     bool insertPageFront(Page&& page);
     bool insertPageBack(Page&& page);

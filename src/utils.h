@@ -122,6 +122,7 @@ int uniqueSelectedId(const QItemSelectionModel* model);
 
 void updateNewKeys(json& src, const json& repl, bool updateNulls = true);
 void nullifyKeys(json& src, const json& repl);
+void updateExceptNulls(json& src, const json& repl);
 bool jsonIsContainer(const json& j);
 
 generator<QLayoutItem*> recursiveLayoutChildren(QLayout* layout);

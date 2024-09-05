@@ -32,6 +32,7 @@ public:
 
 private:
     void updateSource();
+    void updateLastError(const optional<string> lastError);
     void updateMode(PageColorMode mode);
     Ui::PropsEditor* ui;
 };

@@ -86,6 +86,8 @@ ScanWidget::ScanWidget(QWidget* parent) :
     ui->stopBtn->hide();
 
     ui->rLayout->addWidget(ui->lIcon, 0, 0, Qt::AlignRight | Qt::AlignTop);
+    ui->postTEdit->setPlainText(app().appSettings().postT().c_str());
+    ui->postTBox->setChecked(app().appSettings().postTEnabled());
 
     connect(&app().scanner(), &Scanner::devicesFound, [=] { updateDevices(); });
     connect(&app().scanner(), &Scanner::currentDeviceChanged, [=]
@@ -125,6 +127,14 @@ ScanWidget::ScanWidget(QWidget* parent) :
     connect(ui->stopBtn, &QPushButton::clicked, [=]
     {
         stopScanning();
+    });
+    connect(ui->postTEdit, &QPlainTextEdit::textChanged, [=]
+    {
+        app().appSettings().setPostT(ui->postTEdit->toPlainText().toStdString());
+    });
+    connect(ui->postTBox, &QCheckBox::toggled, [=]
+    {
+        app().appSettings().setPostTEnabled(ui->postTBox->isChecked());
     });
     connect(&app().scanner(), &Scanner::pageScanned, [=]
     {
@@ -386,6 +396,14 @@ Task<> ScanWidget::scanLoop()
 
         if (scanningColor || !sclr || sameSrc) // indique prochainement une nouvelle page
         {
+            if (ui->postTBox->isChecked())
+            {
+                QProcess p;
+                ostringstream s;
+                s << "bw=" << imagePath << ";cg=" << imageColorPath << ";" << ui->postTEdit->toPlainText().toStdString();
+                p.startCommand(s.str().c_str());
+                co_await qCoro(p).waitForFinished(60000);
+            }
             auto page = Page{
                 std::rand(), mode, imagePath.filename(),
                 sclr ? sameSrc ? optional(imagePath.filename()) : optional(imageColorPath.filename()) : nullopt, 1

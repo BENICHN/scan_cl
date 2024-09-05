@@ -54,6 +54,7 @@ struct Page
     optional<string> cgSource;
     int subPage = 1;
     vector<unique_ptr<Step>> steps;
+    optional<string> lastError;
 
     Page(int id, PageColorMode color_mode, string source, const optional<string>& cg_source, int sub_page);
 
@@ -215,6 +216,7 @@ public:
     void setPageSettings(int id, const json& json);
     void setPageSettings(int id, const string& name, const json& json);
     void setPageMode(int id, PageColorMode mode);
+    void setPageLastError(int id, const optional<string>& lastError);
     void setPageBWSource(int id, const string& source);
     void setPageCGSource(int id, const optional<string>& source);
 
@@ -229,6 +231,7 @@ signals:
     void pageModeChanged(int id, PageColorMode mode);
     void pageBWSourceChanged(int id, const std::string& source);
     void pageCGSourceChanged(int id, const optional<std::string>& source);
+    void pageLastErrorChanged(int id, const optional<std::string>& lastError);
     void pageListChanged();
     void romanLimitChanged(int romanLimit);
     void globalSettingsChanged(const nlohmann::json& globalSettings);

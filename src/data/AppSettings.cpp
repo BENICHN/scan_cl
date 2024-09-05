@@ -10,6 +10,11 @@
 
 AppSettings::AppSettings(QObject* parent): QObject(parent)
 {
+    if (stf::exists("settings.json"))
+    {
+        ifstream file("settings.json");
+        loadFromJson(json::parse(file));
+    }
 }
 
 void AppSettings::setScanDevName(const optional<string>& scanDevName)
@@ -22,6 +27,18 @@ void AppSettings::save() const
 {
     ofstream file("settings.json");
     file << json(*this).dump(2);
+}
+
+void AppSettings::setPostT(const string& postT)
+{
+    _postT = postT;
+    save();
+}
+
+void AppSettings::setPostTEnabled(bool postTEnabled)
+{
+    _postTEnabled = postTEnabled;
+    save();
 }
 
 json AppSettings::getScanOptions(const PageColorMode mode) const
@@ -84,11 +101,15 @@ void to_json(json& j, const AppSettings& astgs)
 {
     if (astgs._scanDevName.has_value()) j["scanDevName"] = astgs._scanDevName;
     j["scanOptions"] = astgs._scanOptions;
+    j["postT"] = astgs._postT;
+    j["postTEnabled"] = astgs._postTEnabled;
 }
 
 void AppSettings::loadFromJson(const json& j)
 {
     _scanDevName = j.contains("scanDevName") ? optional(j.at("scanDevName")) : nullopt;
     _scanOptions = j.at("scanOptions");
+    _postTEnabled = j.at("postTEnabled");
+    _postT = j.at("postT");
     // ! signals
 }

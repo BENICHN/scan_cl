@@ -14,12 +14,20 @@ class AppSettings final : public QObject
     Q_OBJECT
     optional<string> _scanDevName;
     json _scanOptions;
+    bool _postTEnabled;
+    string _postT;
 
 public:
     explicit AppSettings(QObject* parent = nullptr);
 
     [[nodiscard]] optional<string> scanDevName() const { return _scanDevName; }
     void setScanDevName(const optional<string>& scanDevName);
+
+    [[nodiscard]] string postT() const { return _postT; }
+    void setPostT(const string& postT);
+
+    [[nodiscard]] bool postTEnabled() const { return _postTEnabled; }
+    void setPostTEnabled(bool postTEnabled);
 
     [[nodiscard]] json getScanOptions(PageColorMode mode) const;
     [[nodiscard]] json getScanOptions(const string& devName, PageColorMode mode) const;

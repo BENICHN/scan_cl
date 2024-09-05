@@ -280,6 +280,29 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QCheckBox" name="postTBox">
+       <property name="text">
+        <string>Post-traitement :</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPlainTextEdit" name="postTEdit">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="placeholderText">
+        <string>$bw, $cg</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
@@ -432,8 +455,8 @@
      <y>308</y>
     </hint>
     <hint type="destinationlabel">
-     <x>205</x>
-     <y>282</y>
+     <x>273</x>
+     <y>313</y>
     </hint>
    </hints>
   </connection>
@@ -448,7 +471,7 @@
      <y>308</y>
     </hint>
     <hint type="destinationlabel">
-     <x>269</x>
+     <x>337</x>
      <y>310</y>
     </hint>
    </hints>
@@ -464,7 +487,7 @@
      <y>308</y>
     </hint>
     <hint type="destinationlabel">
-     <x>808</x>
+     <x>658</x>
      <y>311</y>
     </hint>
    </hints>
@@ -480,7 +503,7 @@
      <y>308</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1035</x>
+     <x>689</x>
      <y>309</y>
     </hint>
    </hints>
@@ -514,6 +537,22 @@
     <hint type="destinationlabel">
      <x>741</x>
      <y>110</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>postTBox</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>postTEdit</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>738</x>
+     <y>294</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>874</x>
+     <y>299</y>
     </hint>
    </hints>
   </connection>

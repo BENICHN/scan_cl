@@ -14,7 +14,7 @@ CroppingStep::CroppingStep(const int pageId): Step(pageId)
 
 Task<StepSataus> CroppingStep::run()
 {
-    const auto& book = app().book();
+    auto& book = app().book();
     const auto& page = book.page(_pageId);
 
     json j = realSettings();
@@ -35,5 +35,10 @@ Task<StepSataus> CroppingStep::run()
     QProcess p;
     p.start("python3", argList);
     co_await qCoro(p).waitForFinished(60000);
+    const auto err = p.readAllStandardError().toStdString();
+    if (!err.empty())
+    {
+        book.setPageLastError(_pageId, err);
+    }
     co_return p.exitCode() == 0 ? SST_COMPLETE : SST_ERROR;
 }

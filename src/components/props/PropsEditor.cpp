@@ -24,6 +24,7 @@ PropsEditor::PropsEditor(QWidget* parent) :
     ui->treeView->setModel(new PageSettingsModel(this));
     ui->treeView->setItemDelegate(new StaticJsonDelegate(this));
     ui->treeView->header()->setSectionResizeMode(0, QHeaderView::Stretch);
+    ui->lastErrorLabel->hide();
     connect(qobject_cast<StaticJsonModel*>(ui->treeView->model()), &StaticJsonModel::jsonReset, [=]
     {
         ui->treeView->expandAll();
@@ -38,6 +39,13 @@ PropsEditor::PropsEditor(QWidget* parent) :
             break;
         }
         updateMode(mode);
+    });
+    connect(&app().book(), &Book::pageLastErrorChanged, [=](const int id)
+    {
+        if (_source.index() == PTY_PAGE && get<PTY_PAGE>(_source) == id)
+        {
+            updateLastError(app().book().page(id).lastError);
+        }
     });
     updateSource();
 }
@@ -68,11 +76,26 @@ void PropsEditor::updateSource()
             {
                 ui->cgEdit->setPlainText(page.cgSource.value().c_str());
             }
+            updateLastError(page.lastError);
         }
         break;
     }
     const auto model = qobject_cast<PageSettingsModel*>(ui->treeView->model());
     model->setSource(_source);
+}
+
+void PropsEditor::updateLastError(const optional<string> lastError)
+{
+    if (lastError.has_value())
+    {
+        ui->lastErrorLabel->show();
+        ui->lastErrorLabel->setPlainText(lastError.value().c_str());
+    }
+    else
+    {
+        ui->lastErrorLabel->hide();
+        ui->lastErrorLabel->setPlainText("");
+    }
 }
 
 void PropsEditor::updateMode(const PageColorMode mode)

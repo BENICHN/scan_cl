@@ -31,9 +31,4 @@ App::App(int& argc, char** argv): QApplication(argc, argv)
     installEventFilter(&_eventFilter);
     QImageReader::setAllocationLimit(512);
     std::srand(std::time(nullptr));
-    if (stf::exists("settings.json"))
-    {
-        ifstream file("settings.json");
-        _appSettings.loadFromJson(json::parse(file));
-    }
 }

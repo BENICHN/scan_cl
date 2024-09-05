@@ -130,6 +130,7 @@ Task<StepSataus> Book::runPage(const int id)
         if (nextStep->status == SST_WORKING) co_return nextStep->status;
         nextStep->status = SST_WORKING;
         emit pageStatusChanged(id);
+        setPageLastError(id, nullopt);
         const auto res = co_await nextStep->run();
         nextStep->status = res;
         emit pageStatusChanged(id);
@@ -210,6 +211,7 @@ void Book::cleanPage(const int id)
 
 void Book::resetPage(const int id)
 {
+    setPageLastError(id, nullopt);
     cleanPage(id);
     const auto& p = page(id);
     for (const auto& step : p.steps)
@@ -242,6 +244,12 @@ void Book::setPageMode(int id, PageColorMode mode)
 {
     _pages.at(id).colorMode = mode;
     emit pageModeChanged(id, mode);
+}
+
+void Book::setPageLastError(int id, const optional<string>& lastError)
+{
+    _pages.at(id).lastError = lastError;
+    emit pageLastErrorChanged(id, lastError);
 }
 
 void Book::setPageBWSource(int id, const string& source)
@@ -355,6 +363,11 @@ Book::Book()
     connect(this, &Book::pageModeChanged, this, &Book::save);
     connect(this, &Book::pageBWSourceChanged, this, &Book::save);
     connect(this, &Book::pageCGSourceChanged, this, &Book::save);
+    connect(this, &Book::pageLastErrorChanged, this, &Book::save);
+    // connect(this, &Book::pageStatusChanged, [=](const int id)
+    // {
+    //     if (page(id).status() != PST_ERROR) emit setPageLastError(id, nullopt);
+    // });
 
     connect(this, &Book::bookReset, this, &Book::pageListChanged);
     connect(this, &Book::bookReset, this, [=] { emit romanLimitChanged(_romanLimit); });
